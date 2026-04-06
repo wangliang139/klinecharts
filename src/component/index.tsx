@@ -21,10 +21,8 @@ import Input from './input'
 import Loading from './loading'
 import Switch from './switch'
 import Color from './color'
-import { OverlayPopup } from './popup'
-
 export {
-  Button, Checkbox, List, Modal, Select, Input, Loading, Switch, Color, OverlayPopup
+  Button, Checkbox, List, Modal, Select, Input, Loading, Switch, Color
 }
 
 export type { SelectDataSourceItem }

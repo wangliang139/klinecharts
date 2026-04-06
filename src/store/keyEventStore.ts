@@ -4,8 +4,6 @@ import { setInputClass } from "../component/input";
 import { setPeriodInputValue } from "../widget/timeframe-modal";
 import { documentResize } from "./chartStateStore";
 import { fullScreen, indicatorModalVisible, instanceApi, orderModalVisible, orderPanelVisible, periodModalVisible, resolveRootNode, screenshotUrl, setIndicatorModalVisible, setOrderPanelVisible, setPeriodModalVisible, setScreenshotUrl, setSettingModalVisible, settingModalVisible, theme } from "./chartStore";
-import { showOverlaySetting } from "./overlaySettingStore";
-
 export const [ctrlKeyedDown, setCtrlKeyedDown] = createSignal(false)
 export const [widgetref, setWidgetref] = createSignal<string | Chart | HTMLElement>('')
 export const [timerid, setTimerid] = createSignal<NodeJS.Timeout>()
@@ -96,18 +94,18 @@ const allModalHidden = (except: 'settings'|'indi'|'screenshot'|'order'|'period')
   let value = false
   switch (except) {
     case 'settings':
-      value = !indicatorModalVisible() && screenshotUrl() === '' && !orderModalVisible() && !periodModalVisible() && !showOverlaySetting()
+      value = !indicatorModalVisible() && screenshotUrl() === '' && !orderModalVisible() && !periodModalVisible()
     case 'indi':
-      value = !settingModalVisible() && screenshotUrl() === '' && !orderModalVisible() && !periodModalVisible() && !showOverlaySetting()
+      value = !settingModalVisible() && screenshotUrl() === '' && !orderModalVisible() && !periodModalVisible()
       break
     case 'screenshot':
-      value = !settingModalVisible() && !indicatorModalVisible() && !orderModalVisible() && !periodModalVisible() && !showOverlaySetting()
+      value = !settingModalVisible() && !indicatorModalVisible() && !orderModalVisible() && !periodModalVisible()
       break
     case 'order':
-      value = !settingModalVisible() && !indicatorModalVisible() && screenshotUrl() === '' && !periodModalVisible() && !showOverlaySetting()
+      value = !settingModalVisible() && !indicatorModalVisible() && screenshotUrl() === '' && !periodModalVisible()
       break
     case 'period':
-      value = !settingModalVisible() && !indicatorModalVisible() && screenshotUrl() === '' && !orderModalVisible() && !showOverlaySetting()
+      value = !settingModalVisible() && !indicatorModalVisible() && screenshotUrl() === '' && !orderModalVisible()
       break
   }
   return value

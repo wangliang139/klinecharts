@@ -33,16 +33,14 @@ import {
 import lodashClone from 'lodash/cloneDeep'
 import lodashSet from 'lodash/set'
 
-import { Loading, OverlayPopup, SelectDataSourceItem } from './component'
+import { Loading, SelectDataSourceItem } from './component'
 
 import {
   DrawingBar, IndicatorModal,
   IndicatorSettingModal,
-  OverlaySettingModal,
   PeriodBar,
   ScreenshotModal,
   SettingModal,
-  SettingsFloating,
   SymbolSearchModal,
   TimezoneModal
 } from './widget'
@@ -53,9 +51,8 @@ import Chart from './Chart'
 import { useChartState } from './store/chartStateStore'
 import {
   ChartProComponentProps, instanceApi, loadingVisible, orderPanelVisible,
-  period, selectedOverlay, setInstanceApi, setPeriod, setRooltelId, setSelectedOverlay, setStyles, setSymbol, styles, symbol
+  period, setInstanceApi, setPeriod, setRooltelId, setSelectedOverlay, setStyles, setSymbol, styles, symbol
 } from './store/chartStore'
-import { showOverlayPopup, showOverlaySetting } from './store/overlaySettingStore'
 import { Period, SymbolInfo } from './types/types'
 const { createIndicator, pushOverlay, restoreChartState } = useChartState()
 
@@ -424,14 +421,6 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
   return (
     <>
       <i class="icon-close klinecharts-pro-load-icon" />
-      <Show when={showOverlayPopup()}>
-        <OverlayPopup />
-      </Show>
-      <Show when={showOverlaySetting()}>
-        <OverlaySettingModal
-          locale={props.locale}
-        />
-      </Show>
       <Show when={symbolSearchModalVisible()}>
         <SymbolSearchModal
           locale={props.locale}
@@ -557,11 +546,6 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
             onLockChange={lock => { instanceApi()?.overrideOverlay({ lock }) }}
             onVisibleChange={visible => { instanceApi()?.overrideOverlay({ visible }) }}
             onRemoveClick={(groupId) => { instanceApi()?.removeOverlay({ groupId }) }} />
-        </Show>
-        <Show when={selectedOverlay()}>
-          <SettingsFloating
-            locale={locale()}
-          />
         </Show>
         <div
           ref={widgetRef}

@@ -18,13 +18,12 @@ import {
   PaneProperties,
   setChartModified,
   setMainIndicators,
+  selectedOverlay,
   setSelectedOverlay,
   setStyles,
   setSubIndicators,
   subIndicators,
 } from "./chartStore";
-import { ctrlKeyedDown } from "./keyEventStore";
-import { overlayType, useOverlaySettings } from "./overlaySettingStore";
 
 export const documentResize = () => {
   instanceApi()?.resize();
@@ -288,16 +287,9 @@ export const useChartState = () => {
 
     const ovrly = instanceApi()?.getOverlays({ id: id })[0];
 
-    const handleRightClick = (event: OverlayEvent<unknown>) => {
+    const handleOverlayDeleteGesture = (event: OverlayEvent<unknown>) => {
       if (event.preventDefault) event.preventDefault();
-      console.info("on right click called", event.preventDefault);
-      if (ctrlKeyedDown()) {
-        console.info("control key down");
-        popOverlay(event.overlay.id);
-        return true;
-      }
-      useOverlaySettings().openPopup(event, { overlayType: event.overlay.name as overlayType });
-      // popOverlay(event.overlay.id)
+      popOverlay(event.overlay.id);
       return true;
     };
     if (ovrly) {
@@ -318,8 +310,8 @@ export const useChartState = () => {
         },
         onSelected: (event) => setSelectedOverlay(event.overlay as ProOverlay),
         onDeselected: () => setSelectedOverlay(null),
-        onRightClick: ovrly.onRightClick ? ovrly.onRightClick : handleRightClick,
-        onDoubleClick: ovrly.onDoubleClick ? ovrly.onDoubleClick : handleRightClick,
+        onRightClick: ovrly.onRightClick ? ovrly.onRightClick : handleOverlayDeleteGesture,
+        onDoubleClick: ovrly.onDoubleClick ? ovrly.onDoubleClick : handleOverlayDeleteGesture,
       });
       if (!redrawing) syncObject(ovrly as ProOverlay);
     }
@@ -335,6 +327,7 @@ export const useChartState = () => {
       setChartModified(true);
     }
     instanceApi()?.removeOverlay({ id });
+    if (selectedOverlay()?.id === id) setSelectedOverlay(null);
   };
 
   const modifyOverlay = (id: string, modifyInfo: Partial<OverlayCreate<unknown>>) => {
