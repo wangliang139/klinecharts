@@ -67,8 +67,8 @@ const IndicatorSettingModal: Component<IndicatorSettingModalProps> = props => {
         {
           getConfig(props.params.indicatorName).map((d, i) => {
             return (
-              <>
-                <span >{i18n(d.paramNameKey, props.locale)}</span>
+              <div class="param-row">
+                <span>{i18n(d.paramNameKey, props.locale)}</span>
                 <Input
                   style={{ width: '200px' }}
                   value={calcParams()[i] ?? ''}
@@ -79,7 +79,7 @@ const IndicatorSettingModal: Component<IndicatorSettingModalProps> = props => {
                     params[i] = value
                     setCalcParams(params)
                   }}/>
-              </>
+              </div>
             )
           })
         }

@@ -12,10 +12,10 @@
  * limitations under the License.
  */
 
-import { Component, createSignal, createMemo } from 'solid-js'
+import { Component, createMemo, createSignal } from 'solid-js'
 
-import { Modal, Select } from '../../component'
 import type { SelectDataSourceItem } from '../../component'
+import { Modal, Select } from '../../component'
 import i18n from '../../i18n'
 
 import { createTimezoneSelectOptions } from './data'
@@ -46,11 +46,13 @@ const TimezoneModal: Component<TimezoneModalProps> = props => {
         }
       ]}
       onClose={props.onClose}>
-      <Select
-        style={{ width: '100%', 'margin-top': '20px' }}
-        value={innerTimezone().text}
-        onSelected={(tz) => { setInnerTimezone(tz as SelectDataSourceItem) }}
-        dataSource={timezoneOptions()}/>
+      <div style={{ padding: '20px 20px 0 20px' }}>
+        <Select
+          style={{ width: '100%' }}
+          value={innerTimezone().text}
+          onSelected={(tz) => { setInnerTimezone(tz as SelectDataSourceItem) }}
+          dataSource={timezoneOptions()} />
+      </div>
     </Modal>
   )
 }

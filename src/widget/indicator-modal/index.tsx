@@ -12,9 +12,9 @@
  * limitations under the License.
  */
 
-import { Component, createMemo } from 'solid-js'
+import { Component } from 'solid-js'
 
-import { Modal, List, Checkbox } from '../../component'
+import { Checkbox, List, Modal } from '../../component'
 
 import i18n from '../../i18n'
 
@@ -43,6 +43,7 @@ const IndicatorModal: Component<IndicatorModalProps> = props => {
       title={i18n('indicator', props.locale)}
       width={400}
       onClose={props.onClose}>
+      <div style={{ padding: '0 20px' }}>
       <List
         class="klinecharts-pro-indicator-modal-list">
         <li class="title">{i18n('main_indicator', props.locale)}</li>
@@ -83,8 +84,9 @@ const IndicatorModal: Component<IndicatorModalProps> = props => {
               </li>
             )
           })
-        }
-      </List>
+          }
+        </List>
+      </div>
     </Modal>
   )
 }

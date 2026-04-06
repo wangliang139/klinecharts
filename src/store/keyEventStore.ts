@@ -1,7 +1,6 @@
 import { Chart } from 'klinecharts';
 import { createSignal, startTransition } from "solid-js";
 import { setInputClass } from "../component/input";
-import { setPeriodInputValue } from "../widget/timeframe-modal";
 import { documentResize } from "./chartStateStore";
 import { fullScreen, indicatorModalVisible, instanceApi, orderModalVisible, orderPanelVisible, periodModalVisible, resolveRootNode, screenshotUrl, setIndicatorModalVisible, setOrderPanelVisible, setPeriodModalVisible, setScreenshotUrl, setSettingModalVisible, settingModalVisible, theme } from "./chartStore";
 export const [ctrlKeyedDown, setCtrlKeyedDown] = createSignal(false)
@@ -58,7 +57,6 @@ export const useKeyEvents = () => {
     }
     if (['1','2','3','4','5','6','7','8','9'].includes(event.key) && allModalHidden('period')) {
       // if (periodInputValue().length < 1)
-      //   setPeriodInputValue(event.key)
       if (!periodModalVisible()) {
         setPeriodModalVisible(true)
         setInputClass('klinecharts-pro-input klinecharts-pro-timeframe-modal-input input-error')
@@ -71,7 +69,6 @@ export const useKeyEvents = () => {
     } else if (event.key === 'Escape') {
       //TODO: this should hide all modals
       setPeriodModalVisible(false)
-      setPeriodInputValue('')
 
       setSettingModalVisible(false)
       setOrderPanelVisible(false)
