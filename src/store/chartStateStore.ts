@@ -62,6 +62,7 @@ type CssRootVar =
   | "--klinecharts-pro-text-second-color"
   | "--klinecharts-pro-border-color"
   | "--klinecharts-pro-selected-color"
+  | "--klinecharts-pro-period-hover-background-color"
   | "--klinecharts-pro-popup-shadow-color"
   | "--klinecharts-pro-pane-background"
   | "--klinecharts-pro-pane-background-gradient-start"

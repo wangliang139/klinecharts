@@ -40,6 +40,8 @@
   --klinecharts-pro-text-second-color: @c-text-second-light;
   --klinecharts-pro-border-color: @c-border-light;
   --klinecharts-pro-selected-color: fade(@c-primary, 15%);
+  // 周期栏等：仅预览 hover，比选中态更淡，避免与 --klinecharts-pro-selected-color 同色
+  --klinecharts-pro-period-hover-background-color: fade(@c-primary, 7%);
   --klinecharts-pro-popup-shadow-color: rgba(0, 0, 0, 0.2);
   --klinecharts-pro-pane-background: @c-pane-background-light;
   --klinecharts-pro-pane-background-gradient-start: @c-pane-background-gradient-start-light;
@@ -49,6 +51,7 @@
 /* dark-mode defaults (applied when user adds .theme-dark on the root/html element) */
 :root [data-theme="dark"] {
   --klinecharts-pro-hover-background-color: @c-hover-background-dark;
+  --klinecharts-pro-period-hover-background-color: fade(@c-primary, 9%);
   --klinecharts-pro-background-color: @c-background-dark;
   --klinecharts-pro-popover-background-color: @c-popover-background-dark;
   --klinecharts-pro-text-color: @c-text-dark;

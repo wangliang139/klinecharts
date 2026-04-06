@@ -15,8 +15,8 @@ const chart = new KLineChartPro({
   container: 'chart',
   symbol: {
     ticker: 'DEMO',
-    name: '演示标的',
-    shortName: 'DEMO',
+    // name: '演示标的',
+    // shortName: 'DEMO',
     market: 'demo',
     pricePrecision: 2,
     volumePrecision: 0,
@@ -24,10 +24,18 @@ const chart = new KLineChartPro({
     type: 'stock',
   },
   period: { span: 1, type: 'minute', text: '1m' },
+  periods: [
+    { span: 1, type: 'minute', text: '1m' },
+    { span: 5, type: 'minute', text: '5m' },
+    { span: 15, type: 'minute', text: '15m' },
+    { span: 1, type: 'hour', text: '1H' },
+    { span: 2, type: 'hour', text: '2H' },
+    { span: 4, type: 'hour', text: '4H' },
+  ],
   datafeed: new MockDatafeed(),
-  theme: 'light',
+  theme: 'dark',
   locale: 'zh-CN',
-  drawingBarVisible: true,
+  drawingBarVisible: false,
 })
 
 window.addEventListener('resize', () => {

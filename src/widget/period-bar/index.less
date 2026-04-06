@@ -1,6 +1,11 @@
 @import (reference) '../../base.less';
 
 .@{prefix-cls}-period-bar {
+  @period-cell-width: 48px;
+  @period-inline-divider-height: 16px;
+  @period-selected-bg-inset-x: 6px;
+  @period-selected-bg-inset-y: 4px;
+
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -86,15 +91,10 @@
     padding: 2px 6px;
     margin: 0 4px;
     border-radius: 2px;
-    &:hover {
-      background-color: var(--klinecharts-pro-hover-background-color);
-    }
-    &:first-child {
-      margin-left: 8px;
-    }
-  }
-  .symbol + .period, .menu-container + .period {
-    margin-left: 12px;
+    border: none;
+    background: transparent;
+    font: inherit;
+    color: inherit;
   }
   .tools {
     display: flex;
@@ -115,49 +115,67 @@
       margin-right: 4px;
     }
   }
-  .period + .tools {
-    border-left: solid 1px var(--klinecharts-pro-border-color);
-    margin-left: 8px;
-  }
-  .period_home{
+
+  // 定宽 + 去掉通栏竖线；周期之间用居中的短分割线
+  .tools.period {
+    width: @period-cell-width;
+    flex: 0 0 @period-cell-width;
+    max-width: @period-cell-width;
+    padding: 0 4px;
+    margin: 0;
+    border-right: none;
     position: relative;
+    box-sizing: border-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    // 避免继承 .item 的 transition: all，hover 时颜色/背景渐变被插值成「动画感」
+    transition: none;
   }
-  
-  .@{prefix-cls}-popup_background {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    background-color: transparent;
+
+  .tools.period + .tools.period::before {
+    content: '';
+    position: absolute;
     left: 0;
-    top: 0;
-    z-index: 99;
-    .period_list{
-      position: absolute;
-      top: @period-bar-height + 2px;
-      white-space: nowrap;
-      background-color: var(--klinecharts-pro-popover-background-color);
-      z-index: 99;
-      box-shadow: 0 6px 12px 0 rgba(0, 0, 0, .3);
-      min-height: auto;
-      max-height: 320px;
-      min-width: 100px;
-      overflow: auto;
-      li {
-        height: 40px;
-        padding: 0 20px;
-        display: flex;
-        align-items: center;
-        box-sizing: border-box;
-        cursor: pointer;
-        list-style-type: none;
-        &:hover {
-          background-color: var(--klinecharts-pro-hover-background-color);
-        }
-  
-      }
-    }
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+    height: @period-inline-divider-height;
+    background-color: var(--klinecharts-pro-border-color);
+    pointer-events: none;
   }
-  
+
+  // 周期格：hover / 选中共用同一套内缩尺寸，避免整格铺色与选中块不一致
+  .tools-period-inset-fill(@fill) {
+    background-color: transparent !important;
+    background-image: linear-gradient(@fill, @fill);
+    background-size: calc(100% - (@period-selected-bg-inset-x * 2))
+      calc(100% - (@period-selected-bg-inset-y * 2));
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: 4px;
+  }
+
+  .tools.period:hover:not(.selected) {
+    .tools-period-inset-fill(var(--klinecharts-pro-period-hover-background-color));
+    color: var(--klinecharts-pro-primary-color);
+  }
+
+  .tools.period.selected {
+    .tools-period-inset-fill(var(--klinecharts-pro-selected-color));
+    color: var(--klinecharts-pro-primary-color);
+  }
+
+  .tools.period.selected:hover {
+    .tools-period-inset-fill(var(--klinecharts-pro-selected-color));
+    color: var(--klinecharts-pro-primary-color);
+  }
+
+  // 紧邻「周期」按钮之后的第一个非周期工具区（如指标），竖线分隔、无额外留空
+  .period + .tools:not(.period) {
+    border-left: solid 1px var(--klinecharts-pro-border-color);
+  }
+
   .period_range {
     position: absolute;
     top: 40px;
