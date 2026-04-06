@@ -80,16 +80,29 @@ function createIndicator(widget: Chart, indicatorName: string, isStack?: boolean
       icons.push(features[2])
       icons.push(features[3])
       return {
-        // name: `${indicatorName}_${indi}`,
-        // calcParamsText: indicatorName,
-        features: icons,
-        legends: []
+        features: features
       }
     }
   }, isStack, paneOptions) ?? null
 
   return indi
 }
+
+// function createIndicator (widget: Nullable<Chart>, indicatorName: string, isStack?: boolean, paneOptions?: PaneOptions): Nullable<string> {
+//   if (indicatorName === 'VOL') {
+//     paneOptions = { axis: { gap: { bottom: 2 } }, ...paneOptions }
+//   }
+//   return widget?.createIndicator({
+//     name: indicatorName,
+//     createTooltipDataSource: ({ indicator, chart }): IndicatorTooltipData => {
+//       const fs = chart.getStyles().indicator.tooltip.features ?? []
+//       const features = indicator.visible
+//         ? [fs[1], fs[2], fs[3]]
+//         : [fs[0], fs[2], fs[3]]
+//       return { features: features as TooltipFeatureStyle[] } as IndicatorTooltipData
+//     }
+//   }, isStack, paneOptions) ?? null
+// }
 
 export const [widget, setWidget] = createSignal<Nullable<Chart>>(null)
 export const [loadingVisible, setLoadingVisible] = createSignal(false)
