@@ -1,22 +1,21 @@
 import { DataLoaderGetBarsParams, DataLoaderSubscribeBarParams, DataLoaderUnsubscribeBarParams } from "klinecharts";
-import { ChartDataLoaderType, Datafeed, Period, SymbolInfo } from "./types/types";
 import { period, setLoadingVisible, symbol } from "./store/chartStore";
+import { ChartDataLoaderType, Datafeed, Period, SymbolInfo } from "./types/types";
 
 export default class ChartDataLoader implements ChartDataLoaderType {
   private _datafeed: Datafeed;
   private _loading: boolean;
 
   constructor(datafeed: Datafeed) {
-    console.info('ChartDataLoader initialized');
     this._datafeed = datafeed;
     this._loading = false;
   }
 
   async getBars (params: DataLoaderGetBarsParams): Promise<void> {
-    console.info('ChartDataLoader getBars', params);
+    // console.info('ChartDataLoader getBars', params);
     const { type, timestamp: _t, symbol: _s, period: _p, callback } = params;
       if (type === 'backward' || type === 'update') {
-        console.info('getBars: type is backward or update (no forward support yet)');
+        // console.info('getBars: type is backward or update (no forward support yet)');
         callback([], false);
         return;
       }
@@ -37,13 +36,13 @@ export default class ChartDataLoader implements ChartDataLoaderType {
   }
 
   subscribeBar (params: DataLoaderSubscribeBarParams): void {
-    console.info('ChartDataLoader subscribeBar', params);
+    // console.info('ChartDataLoader subscribeBar', params);
     const { symbol: _s, period: _p, callback } = params;
     this._datafeed.subscribe(symbol()!, period()!, callback)
   }
 
   unsubscribeBar (params: DataLoaderUnsubscribeBarParams): void {
-    console.info('ChartDataLoader unsubscribeBar', params);
+    // console.info('ChartDataLoader unsubscribeBar', params);
     const { symbol: _s, period: _p } = params;
     this._datafeed.unsubscribe(symbol()!, period()!)
   }

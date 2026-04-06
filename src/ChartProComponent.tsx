@@ -154,7 +154,7 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
 
     if (instanceApi()) {
       setRooltelId(props.rootElementId)
-      console.info('ChartPro widget initialized')
+      // console.info('ChartPro widget initialized')
       const watermarkContainer = instanceApi()!.getDom('candle_pane', 'main')
       if (watermarkContainer) {
         let watermark = document.createElement('div')
@@ -177,11 +177,11 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
       instanceApi()?.setBarSpace(400)
 
       instanceApi()?.subscribeAction('onCrosshairFeatureClick', (data) => {
-        console.info('onCrosshairFeatureClick', data)
+        // console.info('onCrosshairFeatureClick', data)
       })
 
       instanceApi()?.subscribeAction('onIndicatorTooltipFeatureClick', (data) => {
-        console.info('onIndicatorTooltipFeatureClick', data)
+        // console.info('onIndicatorTooltipFeatureClick', data)
         const _data = data as { paneId: string, feature: TooltipFeatureStyle, indicator: Indicator }
         switch (_data.feature.id) {
           case 'visible': {
@@ -218,7 +218,7 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
       })
 
       instanceApi()?.subscribeAction('onCandleTooltipFeatureClick', (data) => {
-        console.info('onCandleTooltipFeatureClick', data)
+        // console.info('onCandleTooltipFeatureClick', data)
       })
 
       instanceApi()?.subscribeAction('onZoom', (data) => {
@@ -266,19 +266,19 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
   })
 
   createEffect((prev?: PrevSymbolPeriod) => {
-    console.info('symbol or period changed effect', symbol(), period(), prev)
+    // console.info('symbol or period changed effect', symbol(), period(), prev)
 
     if (!props.dataloader.loading) {
-      console.info('setLoadingVisible false by effect')
+      // console.info('setLoadingVisible false by effect')
       const s = symbol()
       const p = period()
 
       if (prev?.period.span !== p!.span && prev?.period.type !== p!.type) {
-        console.info('period changed: set period', p)
+        // console.info('period changed: set period', p)
         instanceApi()?.setPeriod(p!)
       }
       if (prev !== undefined && prev.symbol?.ticker !== s!.ticker) {
-        console.info('ticker changed: set symbol', s)
+        // console.info('ticker changed: set symbol', s)
         setSelectedOverlay(null)
       }
       instanceApi()?.setSymbol({
@@ -293,7 +293,7 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
 
       return { symbol: s!, period: p! }
     }
-    console.info('props.dataloader.loading is true, skip setLoadingVisible false')
+    // console.info('props.dataloader.loading is true, skip setLoadingVisible false')
 
     return prev
   })
@@ -446,7 +446,7 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
             setMainIndicators(newMainIndicators)
           }}
           onSubIndicatorChange={data => {
-            console.info('onSubIndicatorChange', data)
+            // console.info('onSubIndicatorChange', data)
             const newSubIndicators = { ...subIndicators() }
             if (data.added) {
               const id = createIndicator(instanceApi()!, data.name)

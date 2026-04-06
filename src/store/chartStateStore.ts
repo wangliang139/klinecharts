@@ -300,12 +300,12 @@ export const useChartState = () => {
         id: ovrly.id,
         // styles: overlay.styles ?? style,
         onDrawEnd: (event) => {
-          console.info("on draw end called");
+          // console.info("on draw end called");
           if (!["measure"].includes(ovrly.name)) return syncObject(event.overlay as ProOverlay);
           return false;
         },
         onPressedMoveEnd: (event) => {
-          console.info("on pressed move end called");
+          // console.info("on pressed move end called");
           if (!["measure"].includes(ovrly.name)) return syncObject(event.overlay as ProOverlay);
           return false;
         },

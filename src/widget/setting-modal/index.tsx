@@ -57,7 +57,7 @@ const SettingModal: Component<SettingModalProps> = props => {
       }
     }
     
-    console.info('update setting', option.key, newValue)
+    // console.info('update setting', option.key, newValue)
     const i = option.key.indexOf('.');
     const key = i === -1 ? option.key : option.key.slice(0, i) + '.bla' + option.key.slice(i);
     lodashSet(chartObj.styleObj!, option.key, newValue)

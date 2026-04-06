@@ -38,6 +38,18 @@ const chart = new KLineChartPro({
   drawingBarVisible: false,
 })
 
+chart.setStyles({
+  candle: {
+    tooltip: {
+      title: {show: false, template: '{ticker} · {period}'},
+    },
+  },
+})
+
+setTimeout(() => {
+  console.log(chart.getInstanceApi()?.getStyles())
+}, 1000)
+
 window.addEventListener('resize', () => {
   chart.resize()
 })

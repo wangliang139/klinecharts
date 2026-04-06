@@ -27,7 +27,7 @@ const Popup: Component<PopupProps> = (props) => {
   };
 
   if (typeof props.top === "number") {
-    console.log('props.top', props.top);
+    // console.log('props.top', props.top);
     styleObj["max-height"] = `${getScreenSize().y - props.top - MARGIN}px`;
     const topPx = Math.max(MARGIN, Math.min(props.top, vpH - MARGIN - 40));
     styleObj.top = `${topPx}px`;
