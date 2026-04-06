@@ -81,7 +81,7 @@ function createIndicator(widget: Chart, indicatorName: string, isStack?: boolean
       icons.push(features[3])
       return {
         // name: `${indicatorName}_${indi}`,
-        calcParamsText: indicatorName,
+        // calcParamsText: indicatorName,
         features: icons,
         legends: []
       }
