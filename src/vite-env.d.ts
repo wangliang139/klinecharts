@@ -1,0 +1,1 @@
+declare const __KLINECHARTS_PRO_VERSION__: string
