@@ -1,3 +1,4 @@
+/// <reference path="./vite-env.d.ts" />
 /**
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +30,8 @@ import { OrderType, ExitType, OrderModalType, OrderInfo, OrderModifyInfo, OrderR
 } from './types/types'
 
 import './index.less'
+
+console.log(`[@wangliang139/klinecharts-pro] v${__KLINECHARTS_PRO_VERSION__}`)
 
 overlays.forEach(o => { registerOverlay(o) })
 
