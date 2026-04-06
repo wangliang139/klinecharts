@@ -14,6 +14,8 @@
 
 import { registerOverlay } from 'klinecharts'
 
+import pkg from '../package.json'
+
 import overlays from './extension'
 
 import DefaultDatafeed from './DefaultDatafeed'
@@ -24,6 +26,9 @@ import { load } from './i18n'
 import { Datafeed, SymbolInfo, Period, DatafeedSubscribeCallback, ChartProOptions, ChartPro } from './types'
 
 import './index.less'
+
+// eslint-disable-next-line no-console
+console.log(`[${pkg.name}] v${pkg.version}`)
 
 overlays.forEach(o => { registerOverlay(o) })
 
