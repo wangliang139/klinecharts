@@ -225,7 +225,7 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
       })
 
       instanceApi()?.subscribeAction('onZoom', (data) => {
-        console.info('chart zoomed: ', data)
+        // console.info('chart zoomed: ', data)
       })
 
       instanceApi()?.subscribeAction('onCrosshairChange', (data) => {
@@ -312,7 +312,7 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
             {
               id: 'visible',
               position: 'middle',
-              marginLeft: 8,
+              marginLeft: 6,
               marginTop: 3,
               marginRight: 0,
               marginBottom: 0,
@@ -334,7 +334,7 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
             {
               id: 'invisible',
               position: 'middle',
-              marginLeft: 8,
+              marginLeft: 6,
               marginTop: 3,
               marginRight: 0,
               marginBottom: 0,
