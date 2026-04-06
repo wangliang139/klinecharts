@@ -76,7 +76,7 @@ function createIndicator(widget: Chart, indicatorName: string, isStack?: boolean
       icons.push(features[2])
       icons.push(features[3])
       return {
-        features: features
+        features: icons
       }
     }
   }, isStack, paneOptions) ?? null
