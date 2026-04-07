@@ -1,8 +1,14 @@
 import { KLineChartPro } from '@wangliang139/klinecharts-pro'
 
-import { MockDatafeed } from './mockDatafeed'
+import { createApiDatafeed } from './apiDatafeed'
+import { createApolloClient } from './apollo'
 
 import './main.css'
+
+const defaultExchange = import.meta.env.VITE_KLINE_EXCHANGE ?? 'binance'
+const defaultTicker = import.meta.env.VITE_KLINE_SYMBOL ?? 'BTC/USDT:FUTURE'
+const apolloClient = createApolloClient()
+const datafeed = createApiDatafeed(apolloClient)
 
 const root = document.getElementById('app')
 if (!root) {
@@ -14,25 +20,26 @@ root.innerHTML = '<div id="chart" class="chart-wrap"></div>'
 const chart = new KLineChartPro({
   container: 'chart',
   symbol: {
-    ticker: 'DEMO',
-    // name: '演示标的',
-    // shortName: 'DEMO',
-    market: 'demo',
+    exchange: defaultExchange,
+    ticker: defaultTicker,
+    name: defaultTicker,
+    shortName: defaultTicker,
+    market: defaultExchange,
     pricePrecision: 2,
-    volumePrecision: 0,
-    priceCurrency: 'USD',
-    type: 'stock',
+    volumePrecision: 2,
+    priceCurrency: 'USDT',
+    type: 'crypto',
   },
   period: { span: 1, type: 'minute', text: '1m' },
   periods: [
     { span: 1, type: 'minute', text: '1m' },
     { span: 5, type: 'minute', text: '5m' },
     { span: 15, type: 'minute', text: '15m' },
-    { span: 1, type: 'hour', text: '1H' },
-    { span: 2, type: 'hour', text: '2H' },
-    { span: 4, type: 'hour', text: '4H' },
+    { span: 1, type: 'hour', text: '1h' },
+    { span: 2, type: 'hour', text: '2h' },
+    { span: 4, type: 'hour', text: '4h' },
   ],
-  datafeed: new MockDatafeed(),
+  datafeed,
   theme: 'dark',
   locale: 'zh-CN',
   drawingBarVisible: false,
@@ -41,7 +48,7 @@ const chart = new KLineChartPro({
 chart.setStyles({
   candle: {
     tooltip: {
-      title: {show: true, template: '{ticker} · {period}'},
+      title: {show: false, template: '{ticker} · {period}'},
     },
   },
 })

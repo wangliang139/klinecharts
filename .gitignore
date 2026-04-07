@@ -5,3 +5,4 @@ node_modules/
 /website
 /docs/.vitepress/cache
 /.cursor
+.env.local

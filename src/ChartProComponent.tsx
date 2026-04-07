@@ -25,7 +25,10 @@ import {
   dispose,
   FormatDateParams,
   Indicator,
-  OverlayMode, Styles,
+  OverlayMode,
+  PickPartial,
+  Styles,
+  SymbolInfo as KLineSymbolInfo,
   TooltipFeatureStyle,
   utils
 } from 'klinecharts'
@@ -279,10 +282,10 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
       setSelectedOverlay(null)
     }
     instanceApi()?.setSymbol({
-      ticker: s!.ticker,
-      pricePrecision: s!.pricePrecision,
-      volumePrecision: s!.volumePrecision,
-    })
+      ...s!,
+      pricePrecision: s?.pricePrecision ?? 2,
+      volumePrecision: s?.volumePrecision ?? 0,
+    } as PickPartial<KLineSymbolInfo, 'pricePrecision' | 'volumePrecision'>)
 
     return { symbol: s!, period: p! }
   })
