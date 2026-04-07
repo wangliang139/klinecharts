@@ -45,6 +45,28 @@ const PeriodBar: Component<PeriodBarProps> = props => {
     setFullScreen(isChartRootFullscreen(ref))
   }
 
+  /** PC 纵向滚轮映射为周期栏横向滚动（需 passive: false 才能 preventDefault） */
+  const onPeriodBarWheel = (e: WheelEvent) => {
+    if (e.shiftKey) return
+    const el = e.currentTarget as HTMLDivElement
+    if (el.scrollWidth <= el.clientWidth) return
+
+    let delta = e.deltaY
+    if (e.deltaMode === WheelEvent.DOM_DELTA_LINE) {
+      delta *= 16
+    } else if (e.deltaMode === WheelEvent.DOM_DELTA_PAGE) {
+      delta *= el.clientWidth
+    }
+    if (delta === 0) return
+
+    const maxScroll = el.scrollWidth - el.clientWidth
+    if (delta > 0 && el.scrollLeft >= maxScroll - 1) return
+    if (delta < 0 && el.scrollLeft <= 0) return
+
+    e.preventDefault()
+    el.scrollLeft += delta
+  }
+
   onMount(() => {
     document.addEventListener('fullscreenchange', fullScreenChange)
     document.addEventListener('mozfullscreenchange', fullScreenChange)
@@ -61,7 +83,16 @@ const PeriodBar: Component<PeriodBarProps> = props => {
 
   return (
     <div
-      ref={el => { ref = el }} class="klinecharts-pro-period-bar"
+      ref={el => {
+        const prev = ref as HTMLElement | undefined
+        if (prev) {
+          prev.removeEventListener('wheel', onPeriodBarWheel)
+        }
+        ref = el
+        if (el) {
+          el.addEventListener('wheel', onPeriodBarWheel, { passive: false })
+        }
+      }} class="klinecharts-pro-period-bar"
     >
       <div class='menu-container'>
         <svg
