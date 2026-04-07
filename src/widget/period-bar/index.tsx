@@ -62,7 +62,6 @@ const PeriodBar: Component<PeriodBarProps> = props => {
   return (
     <div
       ref={el => { ref = el }} class="klinecharts-pro-period-bar"
-      style="overflow-x: auto;"
     >
       <div class='menu-container'>
         <svg

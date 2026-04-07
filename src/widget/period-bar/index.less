@@ -9,17 +9,28 @@
 
   display: flex;
   flex-direction: row;
+  flex-wrap: nowrap;
   align-items: center;
   height: @period-bar-height;
   width: 100%;
   box-sizing: border-box;
   background-color: var(--klinecharts-pro-background-color);
   border-bottom: solid 1px var(--klinecharts-pro-border-color);
-  .flow{
-    overflow-x: auto;
+  flex-shrink: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  // 隐藏滚动条，仍可用触控板/手指/Shift+滚轮横向滑动
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
   }
   .menu-container {
     display: flex;
+    flex-shrink: 0;
     height: 100%;
     flex-direction: row;
     justify-content: center;
@@ -65,6 +76,7 @@
     display: flex;
     flex-direction: row;
     align-items: center;
+    flex-shrink: 0;
     height: 100%;
     font-size: 18px;
     padding: 0 12px;
@@ -76,6 +88,7 @@
       width: 20px;
       height: 20px;
       margin-right: 6px;
+      flex-shrink: 0;
     }
   }
   .item {
@@ -102,6 +115,7 @@
     flex-direction: row;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
     height: 100%;
     padding: 0 12px;
     border-right: solid 1px var(--klinecharts-pro-border-color);
@@ -237,5 +251,22 @@
     height: 16px;
     background-color: #76808F;
     border-radius: 50%;
+  }
+
+  // 窄屏：仅图标以缩短横向滚动距离
+  @media (max-width: 560px) {
+    .symbol {
+      font-size: 15px;
+      padding: 0 8px;
+    }
+    .tools:not(.period) {
+      padding: 0 8px;
+      span {
+        display: none;
+      }
+      svg {
+        margin-right: 0;
+      }
+    }
   }
 }

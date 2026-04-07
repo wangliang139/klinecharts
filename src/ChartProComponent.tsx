@@ -545,6 +545,9 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
           data-pane-style={props.overrides.backgroundType ?? 'solid'}
           data-drawing-bar-visible={drawingBarVisible()} />
       </div>
+      <Show when={orderPanelVisible()}>
+        <div class="klinecharts-pro-order-pane-reserved" aria-hidden="true" />
+      </Show>
     </>
   )
 }
