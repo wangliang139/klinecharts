@@ -196,7 +196,7 @@ const positionAvgLine = (): OverlayTemplate => ({
         align: isFromZero ? "left" : "right",
         baseline: "middle",
       },
-      styles: axisPriceBox(lineColor),
+      styles: axisPriceBox("#bfbfbf"),
     };
   },
   onPressedMoveStart: () => false,
