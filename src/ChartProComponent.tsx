@@ -58,6 +58,7 @@ import {
   period, setInstanceApi, setPeriod, setRooltelId, setSelectedOverlay, setStyles, setSymbol, styles, symbol
 } from './store/chartStore'
 import {
+  bindTradingStore,
   loadTradingConfigFromStorage,
   setHisOrdersData,
   setLiquidationPriceData,
@@ -65,12 +66,21 @@ import {
   setPositionsData,
   syncTradingOverlays
 } from './store/tradingStore'
+import { createHisOrderHoverController, createResyncScheduler } from './store/tradingEffects'
+import { HIS_ORDER_HOVER_EVENT } from './extension/trading/constants'
 import { HisOrder, PendingOrder, Period, Position, SymbolInfo } from './types/types'
 const { createIndicator, pushOverlay, restoreChartState } = useChartState()
 
 interface PrevSymbolPeriod {
   symbol: SymbolInfo
   period: Period
+}
+type SubIndicatorMap = Record<string, string>
+type IndicatorSettingParams = {
+  visible: boolean
+  indicatorName: string
+  paneId: string
+  calcParams: Indicator['calcParams']
 }
 
 const TRADING_RESYNC_DELAYS = [0, 120, 360, 900] as const
@@ -189,7 +199,7 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
 
   const [indicatorModalVisible, setIndicatorModalVisible] = createSignal(false)
   const [mainIndicators, setMainIndicators] = createSignal([...(props.mainIndicators!)])
-  const [subIndicators, setSubIndicators] = createSignal({})
+  const [subIndicators, setSubIndicators] = createSignal<SubIndicatorMap>({})
 
   const [timezoneModalVisible, setTimezoneModalVisible] = createSignal(false)
   const [timezone, setTimezone] = createSignal<SelectDataSourceItem>({ key: props.timezone, text: translateTimezone(props.timezone, props.locale) })
@@ -205,43 +215,43 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
   const [hisOrderHoverVisible, setHisOrderHoverVisible] = createSignal(false)
   const [hisOrderHoverData, setHisOrderHoverData] = createSignal<HisOrder | null>(null)
   const [hisOrderHoverAnchor, setHisOrderHoverAnchor] = createSignal<{ x: number | null; y: number | null }>({ x: null, y: null })
-  let hisOrderHoverHideTimer: number | null = null
-  const tradingOverlayResyncTimers: number[] = []
-  let tradingOverlayResyncBatch = 0
   let resizeRafId: number | null = null
   let isDisposed = false
   let lastTooltipFeatureColor: string | null = null
   let widgetDefaultStylesCaptured = false
   let lastExternalStyles: ReturnType<typeof styles>
 
-  const [indicatorSettingModalParams, setIndicatorSettingModalParams] = createSignal({
-    visible: false, indicatorName: '', paneId: '', calcParams: [] as Array<any>
+  const [indicatorSettingModalParams, setIndicatorSettingModalParams] = createSignal<IndicatorSettingParams>({
+    visible: false, indicatorName: '', paneId: '', calcParams: []
   })
 
   
   setPeriod(props.period)
   setSymbol(props.symbol)
 
-  const clearTradingOverlayResyncTimers = () => {
-    while (tradingOverlayResyncTimers.length > 0) {
-      const timer = tradingOverlayResyncTimers.pop()
-      if (timer != null) window.clearTimeout(timer)
+  const hoverController = createHisOrderHoverController(
+    HIS_ORDER_HOVER_HIDE_DELAY,
+    (detail) => {
+      setHisOrderHoverVisible(detail.visible)
+      setHisOrderHoverData(detail.order)
+      setHisOrderHoverAnchor({ x: detail.x, y: detail.y })
     }
-  }
+  )
+  const resyncScheduler = createResyncScheduler(
+    () => syncTradingOverlays(instanceApi()),
+    TRADING_RESYNC_DELAYS
+  )
 
   const disposeChart = () => {
     if (isDisposed) return
     isDisposed = true
-    if (hisOrderHoverHideTimer != null) {
-      window.clearTimeout(hisOrderHoverHideTimer)
-      hisOrderHoverHideTimer = null
-    }
-    clearTradingOverlayResyncTimers()
+    hoverController.clear()
+    resyncScheduler.clear()
     if (resizeRafId != null) {
       window.cancelAnimationFrame(resizeRafId)
       resizeRafId = null
     }
-    window.removeEventListener('klinecharts-pro-his-order-hover', onHisOrderHover as EventListener)
+    window.removeEventListener(HIS_ORDER_HOVER_EVENT, hoverController.onEvent as EventListener)
     window.removeEventListener('resize', documentResize)
     if (widgetRef) {
       dispose(widgetRef)
@@ -264,10 +274,10 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
     getInstanceApi: () => instanceApi(),
     resize: () => instanceApi()?.resize(),
     dispose: () => { disposeChart() },
-    setPositions: (list: Position[]) => { setPositionsData(list) },
-    setLiqPrice: (price: number | null) => { setLiquidationPriceData(price) },
-    setOpenOrders: (list: PendingOrder[]) => { setOpenOrdersData(list) },
-    setHisOrders: (list: HisOrder[]) => { setHisOrdersData(list) },
+    setPositions: (list: Position[]) => { setPositionsData(list, instanceApi()) },
+    setLiqPrice: (price: number | null) => { setLiquidationPriceData(price, instanceApi()) },
+    setOpenOrders: (list: PendingOrder[]) => { setOpenOrdersData(list, instanceApi()) },
+    setHisOrders: (list: HisOrder[]) => { setHisOrdersData(list, instanceApi()) },
   }
 
   props.ref(exposedApi)
@@ -280,50 +290,13 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
     })
   }
 
-  const onHisOrderHover = (evt: Event) => {
-    const event = evt as CustomEvent<{ visible: boolean; order: HisOrder | null; anchorX?: number | null; anchorY?: number | null }>
-    const visible = !!event.detail?.visible
-    if (visible) {
-      if (hisOrderHoverHideTimer != null) {
-        window.clearTimeout(hisOrderHoverHideTimer)
-        hisOrderHoverHideTimer = null
-      }
-      setHisOrderHoverData(event.detail?.order ?? null)
-      setHisOrderHoverAnchor({ x: event.detail?.anchorX ?? null, y: event.detail?.anchorY ?? null })
-      setHisOrderHoverVisible(true)
-      return
-    }
-    if (hisOrderHoverHideTimer != null) {
-      window.clearTimeout(hisOrderHoverHideTimer)
-    }
-    hisOrderHoverHideTimer = window.setTimeout(() => {
-      setHisOrderHoverVisible(false)
-      setHisOrderHoverData(null)
-      setHisOrderHoverAnchor({ x: null, y: null })
-      hisOrderHoverHideTimer = null
-    }, HIS_ORDER_HOVER_HIDE_DELAY)
-  }
-
   const scheduleTradingOverlayResync = () => {
     // 周期/品种切换后数据加载是异步的，分段重试可覆盖“先清空后到数”的窗口。
-    tradingOverlayResyncBatch += 1
-    const currentBatch = tradingOverlayResyncBatch
-    clearTradingOverlayResyncTimers()
-    TRADING_RESYNC_DELAYS.forEach((delay) => {
-      const timer = window.setTimeout(() => {
-        if (currentBatch !== tradingOverlayResyncBatch) {
-          return
-        }
-        syncTradingOverlays()
-        const idx = tradingOverlayResyncTimers.indexOf(timer)
-        if (idx >= 0) tradingOverlayResyncTimers.splice(idx, 1)
-      }, delay)
-      tradingOverlayResyncTimers.push(timer)
-    })
+    resyncScheduler.schedule()
   }
 
   onMount(() => {
-    window.addEventListener('klinecharts-pro-his-order-hover', onHisOrderHover as EventListener)
+    window.addEventListener(HIS_ORDER_HOVER_EVENT, hoverController.onEvent as EventListener)
     window.addEventListener('resize', documentResize)
     setInstanceApi(Chart.init(widgetRef!, {
       formatter: {
@@ -419,7 +392,6 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
             } else {
               const newIndicators = { ...subIndicators() }
               instanceApi()?.removeIndicator({ paneId: _data.paneId, name: _data.indicator.name, id: _data.indicator.id })
-              // @ts-expect-error
               delete newIndicators[_data.indicator.name]
               setSubIndicators(newIndicators)
             }
@@ -439,8 +411,9 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
         // console.info('crosshair change: ', data)
       })
       restoreChartState(props.overrides)
-      loadTradingConfigFromStorage()
-      syncTradingOverlays()
+      bindTradingStore(instanceApi()!)
+      loadTradingConfigFromStorage(instanceApi())
+      syncTradingOverlays(instanceApi())
 
       const s = symbol()
       if (s?.priceCurrency) {
@@ -460,11 +433,10 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
       mainIndicators().forEach(indicator => {
         createIndicator(w, indicator, true, { id: 'candle_pane' })
       })
-      const subIndicatorMap = {}
+      const subIndicatorMap: SubIndicatorMap = {}
       props.subIndicators!.forEach(indicator => {
         const paneId = createIndicator(w, indicator, true)
         if (paneId) {
-          // @ts-expect-error
           subIndicatorMap[indicator] = paneId
         }
       })
@@ -615,13 +587,11 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
             if (data.added) {
               const id = createIndicator(instanceApi()!, data.name)
               if (id) {
-                // @ts-expect-error
                 newSubIndicators[data.name] = id
               }
             } else {
               if (data.id) {
                 instanceApi()?.removeIndicator({ name: data.name, id: data.id })
-                // @ts-expect-error
                 delete newSubIndicators[data.name]
               }
             }
