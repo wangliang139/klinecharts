@@ -52,8 +52,13 @@ chart.setStyles({
 })
 
 setTimeout(() => {
-  console.log(chart.getInstanceApi()?.getStyles())
-}, 1000)
+  const api = chart.getInstanceApi()
+  const list = api?.getDataList() ?? []
+  const last = list.at(-1)
+  const close = typeof last?.close === 'number' && Number.isFinite(last.close) ? last.close : 95000
+  chart.setPositions([{ side: 'long', avgPrice: close, size: 1 }])
+  chart.setLiqPrice(70000)
+}, 1500)
 
 window.addEventListener('resize', () => {
   chart.resize()
