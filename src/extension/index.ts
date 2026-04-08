@@ -19,6 +19,8 @@ import xabcd from './xabcd'
 
 import positionLine from './position/orderLine'
 import brush from './brush'
+import positionAvgLine from './trading/positionAvgLine'
+import liquidationLine from './trading/liquidationLine'
 
 const overlays = [
   arrow(), brush(),
@@ -27,6 +29,8 @@ const overlays = [
   fibonacciSpeedResistanceFan(), fibonacciExtension(), gannBox(),
   threeWaves(), fiveWaves(), eightWaves(), anyWaves(), abcd(), xabcd(),
   positionLine(),
+  positionAvgLine(),
+  liquidationLine(),
 ]
 
 export default overlays

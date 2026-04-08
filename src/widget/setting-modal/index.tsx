@@ -13,7 +13,7 @@
  */
 
 import { DeepPartial, Styles, utils } from 'klinecharts'
-import { Component, createEffect, createSignal, For } from 'solid-js'
+import { Component, createEffect, createSignal, For, Show } from 'solid-js'
 
 import lodashSet from 'lodash/set'
 
@@ -25,6 +25,7 @@ import { ChartObjType } from '../../types'
 import { getOptions } from './data'
 // import { chartsession, chartsessionCtr } from '../../ChartProComponent'
 import { setChartModified } from '../../store/chartStore'
+import { loadTradingConfigFromStorage, setTradingConfigState } from '../../store/tradingStore'
 
 export interface SettingModalProps {
   locale: string
@@ -37,12 +38,19 @@ export interface SettingModalProps {
 const SettingModal: Component<SettingModalProps> = props => {
   const [styles, setStyles] = createSignal(props.currentStyles)
   const [options, setOptions] = createSignal(getOptions(props.locale))
-  const [currentSetting, setCurrentSetting] = createSignal('candle')
+  const [currentSetting, setCurrentSetting] = createSignal('trading')
+  const [tradingUi, setTradingUi] = createSignal(loadTradingConfigFromStorage())
 
   let stylee: DeepPartial<Styles> = {}
 
   createEffect(() => {
     setOptions(getOptions(props.locale))
+  })
+
+  createEffect(() => {
+    if (currentSetting() === 'trading') {
+      setTradingUi(loadTradingConfigFromStorage())
+    }
   })
 
   const update = (option: SelectDataSourceItem, newValue: any) => {
@@ -88,13 +96,14 @@ const SettingModal: Component<SettingModalProps> = props => {
   }
 
   const settingsButton = [
-    {text: 'Candle', key: 'candle'},
-    {text: 'Indicator', key: 'indicator'},
-    {text: 'Grid', key: 'grid'},
-    {text: 'X-Axis', key: 'xAxis'},
-    {text: 'Y-Axis', key: 'yAxis'},
-    {text: 'Separator', key: 'separator'},
-    {text: 'Crosshair', key: 'crosshair'}
+    { text: i18n('setting_sidebar_trading', props.locale), key: 'trading' },
+    { text: 'Candle', key: 'candle' },
+    { text: 'Indicator', key: 'indicator' },
+    { text: 'Grid', key: 'grid' },
+    { text: 'X-Axis', key: 'xAxis' },
+    { text: 'Y-Axis', key: 'yAxis' },
+    { text: 'Separator', key: 'separator' },
+    { text: 'Crosshair', key: 'crosshair' },
   ]
 
   return (
@@ -123,63 +132,91 @@ const SettingModal: Component<SettingModalProps> = props => {
             }
           </div>
           <div class='content'>
-            <For each={options().filter(el => el.key.includes(currentSetting()))}>
-              {
-                option => {
-                  let component
-                  const value = utils.formatValue(styles(), option.key)
-                  switch (option.component) {
-                    case 'select': {
-                      component = (
-                        <Select
-                          style={{ width: '120px' }}
-                          value={i18n(value as string, props.locale)}
-                          ///@ts-expect-error
-                          dataSource={option.dataSource}
-                          onSelected={(data) => {
-                            const newValue = (data as SelectDataSourceItem).key
-                            update(option, newValue)
-                          }}/>
-                      )
-                      break
+            <Show
+              when={currentSetting() === 'trading'}
+              fallback={
+                <For each={options().filter((el) => el.key.includes(currentSetting()))}>
+                  {(option) => {
+                    let component
+                    const value = utils.formatValue(styles(), option.key)
+                    switch (option.component) {
+                      case 'select': {
+                        component = (
+                          <Select
+                            style={{ width: '120px' }}
+                            value={i18n(value as string, props.locale)}
+                            ///@ts-expect-error
+                            dataSource={option.dataSource}
+                            onSelected={(data) => {
+                              const newValue = (data as SelectDataSourceItem).key
+                              update(option, newValue)
+                            }}
+                          />
+                        )
+                        break
+                      }
+                      case 'switch': {
+                        const open = !!value
+                        component = (
+                          <Switch
+                            open={open}
+                            onChange={() => {
+                              update(option, !open)
+                            }}
+                          />
+                        )
+                        break
+                      }
+                      case 'color': {
+                        component = (
+                          <Color
+                            style={{ width: '120px' }}
+                            value={value as any}
+                            reactiveChange={false}
+                            onChange={(el) => {
+                              const newValue = el
+                              update(option, newValue)
+                            }}
+                          />
+                        )
+                        break
+                      }
                     }
-                    case 'switch': {
-                      const open = !!value
-                      component = (
-                        <Switch
-                          open={open}
-                          onChange={() => {
-                            update(option, !open)
-                          }}/>
-                      )
-                      break
-                    }
-                    case 'color': {
-                      component = (
-                        <Color 
-                          style={{ width: '120px' }}
-                          value={value as any}
-                          reactiveChange={false}
-                          onChange={(el) => {
-                            const newValue = el
-                            update(option, newValue)
-                          }}  
-                        />
-                      )
-                      break
-                    }
-                  }
-                  return (
-                    <>
-                      <div class="component">
-                        <span>{option.text}</span>
-                        {component}
-                      </div>
-                    </>
-                  )
-                }
+                    return (
+                      <>
+                        <div class="component">
+                          <span>{option.text}</span>
+                          {component}
+                        </div>
+                      </>
+                    )
+                  }}
+                </For>
               }
-            </For>
+            >
+              <div class="component">
+                <span>{i18n('trading_display_positions', props.locale)}</span>
+                <Switch
+                  open={tradingUi().showPositions}
+                  onChange={() => {
+                    const next = { ...tradingUi(), showPositions: !tradingUi().showPositions }
+                    setTradingUi(next)
+                    setTradingConfigState(next)
+                  }}
+                />
+              </div>
+              <div class="component">
+                <span>{i18n('trading_display_liquidation', props.locale)}</span>
+                <Switch
+                  open={tradingUi().showLiquidation}
+                  onChange={() => {
+                    const next = { ...tradingUi(), showLiquidation: !tradingUi().showLiquidation }
+                    setTradingUi(next)
+                    setTradingConfigState(next)
+                  }}
+                />
+              </div>
+            </Show>
           </div>
       </div> 
     </Modal>

@@ -24,9 +24,25 @@ import KLineChartPro from './KLineChartPro'
 
 import { load } from './i18n'
 
-import { OrderType, ExitType, OrderModalType, OrderInfo, OrderModifyInfo, OrderResource, Datafeed,
-  SymbolInfo, Period, DatafeedSubscribeCallback, OrderPlacedCallback, ChartProOptions, ChartPro, ChartObjType,
-  ProChart
+import {
+  ChartObjType,
+  ChartPro,
+  ChartProOptions,
+  Datafeed,
+  DatafeedSubscribeCallback,
+  ExitType,
+  OrderInfo,
+  OrderModalType,
+  OrderModifyInfo,
+  OrderPlacedCallback,
+  OrderResource,
+  OrderType,
+  Period,
+  ProChart,
+  SymbolInfo,
+  TradingConfig,
+  TradingPosition,
+  TradingPositionSide
 } from './types/types'
 
 import './index.less'
@@ -43,7 +59,4 @@ export {
   load as loadLocales
 }
 
-export type {
-  OrderInfo, OrderModifyInfo, OrderType, ExitType, OrderModalType, OrderResource, Datafeed, SymbolInfo,
-  Period, DatafeedSubscribeCallback, OrderPlacedCallback, ChartProOptions, ChartPro, ChartObjType, ProChart
-}
+export type { ChartObjType, ChartPro, ChartProOptions, Datafeed, DatafeedSubscribeCallback, ExitType, OrderInfo, OrderModalType, OrderModifyInfo, OrderPlacedCallback, OrderResource, OrderType, Period, ProChart, SymbolInfo, TradingConfig, TradingPosition, TradingPositionSide }

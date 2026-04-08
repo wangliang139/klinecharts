@@ -120,5 +120,8 @@
   "log": "对数轴",
   "reverse_coordinate": "倒置坐标",
   "grid_show": "网格线显示",
+  "setting_sidebar_trading": "交易",
+  "trading_display_positions": "当前持仓",
+  "trading_display_liquidation": "强平价格",
   "restore_default": "重置"
 }

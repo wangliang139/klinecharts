@@ -120,5 +120,8 @@
   "log": "Log",
   "reverse_coordinate": "Reverse Coordinate",
   "grid_show": "Show Grids",
+  "setting_sidebar_trading": "Trading",
+  "trading_display_positions": "Open positions",
+  "trading_display_liquidation": "Liquidation price",
   "restore_default": "Restore Defaults"
 }

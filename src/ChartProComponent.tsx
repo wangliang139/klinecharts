@@ -56,6 +56,12 @@ import {
   ChartProComponentProps, instanceApi, loadingVisible, orderPanelVisible,
   period, setInstanceApi, setPeriod, setRooltelId, setSelectedOverlay, setStyles, setSymbol, styles, symbol
 } from './store/chartStore'
+import {
+  loadTradingConfigFromStorage,
+  setLiquidationPriceData,
+  setPositionsData,
+  syncTradingOverlays
+} from './store/tradingStore'
 import { Period, SymbolInfo } from './types/types'
 const { createIndicator, pushOverlay, restoreChartState } = useChartState()
 
@@ -109,7 +115,9 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
     getPeriod: () => period()!,
     getInstanceApi: () => instanceApi(),
     resize: () => instanceApi()?.resize(),
-    dispose: () => { }
+    dispose: () => { },
+    setPositions: (list) => { setPositionsData(list) },
+    setLiqPrice: (price) => { setLiquidationPriceData(price) },
   })
 
   const documentResize = () => {
@@ -232,6 +240,8 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
         // console.info('crosshair change: ', data)
       })
       restoreChartState(props.overrides)
+      loadTradingConfigFromStorage()
+      syncTradingOverlays()
 
       const s = symbol()
       if (s?.priceCurrency) {
