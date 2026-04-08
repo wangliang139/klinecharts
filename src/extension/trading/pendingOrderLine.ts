@@ -27,7 +27,25 @@ const lineStyleFor = (color: string): LineStyle => ({
   dashedValue: [4, 4],
 });
 
-const labelStyleFor = (color: string): TextStyle => ({
+const textLabel = (color: string): TextStyle => ({
+  style: "stroke_fill",
+  size: 12,
+  family: "Arial, sans-serif",
+  weight: "normal",
+  color: color,
+  backgroundColor: "white",
+  borderColor: color,
+  borderStyle: "solid",
+  borderSize: 1,
+  borderDashedValue: [],
+  borderRadius: [2, 0, 0, 2],
+  paddingLeft: 4,
+  paddingRight: 4,
+  paddingTop: 4,
+  paddingBottom: 4,
+});
+
+const qtyLabel = (color: string): TextStyle => ({
   style: "stroke_fill",
   size: 12,
   family: "Arial, sans-serif",
@@ -38,7 +56,7 @@ const labelStyleFor = (color: string): TextStyle => ({
   borderStyle: "solid",
   borderSize: 1,
   borderDashedValue: [],
-  borderRadius: 2,
+  borderRadius: [0, 2, 2, 0],
   paddingLeft: 4,
   paddingRight: 4,
   paddingTop: 4,
@@ -46,16 +64,16 @@ const labelStyleFor = (color: string): TextStyle => ({
 });
 
 /** 与 positionAvgLine Y 轴价签一致的底栏样式 */
-const axisPriceBox = (textColor: string): TextStyle => ({
-  style: "fill",
+const axisPriceBox = (color: string): TextStyle => ({
+  style: "stroke_fill",
   size: 12,
   family: "Arial, sans-serif",
   weight: "normal",
-  color: textColor,
-  backgroundColor: "rgba(22, 26, 32, 0.72)",
-  borderColor: "transparent",
+  color: color,
+  backgroundColor: "rgba(255,255,255,0.75)",
+  borderColor: color,
   borderStyle: "solid",
-  borderSize: 0,
+  borderSize: 1,
   borderDashedValue: [],
   borderRadius: 2,
   paddingLeft: 4,
@@ -91,19 +109,23 @@ const pendingOrderLine = (): OverlayTemplate => ({
     const pricePrecision = symbol?.pricePrecision ?? 2;
     const volumePrecision = symbol?.volumePrecision ?? 4;
 
-    const priceStr = formatWesternGrouped(price, pricePrecision);
+    // const priceStr = formatWesternGrouped(price, pricePrecision);
+    const priceStr = "限价";
     const sizeStr = formatWesternGrouped(ext.size, volumePrecision);
-    const displayText = `${priceStr} / ${sizeStr}`;
 
     const lineColor = buySellToLineColor(ext.isBuy);
-    const ls = labelStyleFor(lineColor);
+    const priceStyle = textLabel(lineColor);
+    const sizeStyle = qtyLabel(lineColor);
 
-    const padL = ls.paddingLeft!;
-    const padR = ls.paddingRight!;
-    const labelBoxWidth = utils.calcTextWidth(displayText) + padL + padR;
+    const padL = priceStyle.paddingLeft!;
+    const padR = priceStyle.paddingRight!;
+    const priceBoxW = utils.calcTextWidth(priceStr) + padL + padR;
+    const sizeBoxW = utils.calcTextWidth(sizeStr) + padL + padR;
     const marginLeft = 16;
-    const gapAfterLabel = 2;
-    const lineStartX = marginLeft + labelBoxWidth + gapAfterLabel;
+    const gapBetweenLabels = -1;
+    const gapAfterLabels = 2;
+    const sizeX = marginLeft + priceBoxW + gapBetweenLabels;
+    const lineStartX = sizeX + sizeBoxW + gapAfterLabels;
 
     return [
       {
@@ -119,16 +141,29 @@ const pendingOrderLine = (): OverlayTemplate => ({
         ignoreEvent: true,
       },
       {
-        key: "order-label",
+        key: "order-price",
         type: "text",
         attrs: {
           x: marginLeft,
           y,
-          text: displayText,
+          text: priceStr,
           align: "left",
           baseline: "middle",
         },
-        styles: ls,
+        styles: priceStyle,
+        ignoreEvent: true,
+      },
+      {
+        key: "order-size",
+        type: "text",
+        attrs: {
+          x: sizeX,
+          y,
+          text: sizeStr,
+          align: "left",
+          baseline: "middle",
+        },
+        styles: sizeStyle,
         ignoreEvent: true,
       },
     ];
@@ -151,13 +186,13 @@ const pendingOrderLine = (): OverlayTemplate => ({
     if (!isPriceInVisibleCandleRange(chart, price)) {
       return emptyAxis;
     }
+    const lineColor = buySellToLineColor(ext.isBuy);
     const last = chart.getDataList().at(-1);
     if (!last) {
       return emptyAxis;
     }
     const y =
-      (chart.convertToPixel({ timestamp: last.timestamp, value: price }) as Partial<Coordinate>).y ??
-      coordinates[0].y;
+      (chart.convertToPixel({ timestamp: last.timestamp, value: price }) as Partial<Coordinate>).y ?? coordinates[0].y;
     const isFromZero = yAxis?.isFromZero() ?? false;
     const text = formatWesternGrouped(price, precision.price);
     return {
@@ -169,7 +204,7 @@ const pendingOrderLine = (): OverlayTemplate => ({
         align: isFromZero ? "left" : "right",
         baseline: "middle",
       },
-      styles: axisPriceBox("#b7bdc6"),
+      styles: axisPriceBox(lineColor),
     };
   },
   onPressedMoveStart: () => false,
