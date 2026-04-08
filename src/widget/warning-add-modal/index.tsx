@@ -111,18 +111,6 @@ const WarningAddModal: Component<WarningAddModalProps> = (props) => {
             }}
           />
         </div>
-        <div class="row">
-          <span>频率</span>
-          <Select
-            style={{ width: '220px' }}
-            value={FREQUENCY_OPTIONS.find(item => item.key === form().frequency)?.text}
-            dataSource={FREQUENCY_OPTIONS}
-            onSelected={item => {
-              const next = (item as SelectDataSourceItem).key as WarningFrequency
-              setForm(prev => ({ ...prev, frequency: next }))
-            }}
-          />
-        </div>
         <Show when={isPriceType()}>
           <div class="row">
             <span>价格</span>
@@ -168,6 +156,18 @@ const WarningAddModal: Component<WarningAddModalProps> = (props) => {
             </div>
           </>
         </Show>
+        <div class="row">
+          <span>频率</span>
+          <Select
+            style={{ width: '220px' }}
+            value={FREQUENCY_OPTIONS.find(item => item.key === form().frequency)?.text}
+            dataSource={FREQUENCY_OPTIONS}
+            onSelected={item => {
+              const next = (item as SelectDataSourceItem).key as WarningFrequency
+              setForm(prev => ({ ...prev, frequency: next }))
+            }}
+          />
+        </div>
         <div class="row">
           <span>备注</span>
           <input

@@ -107,10 +107,12 @@ const WarningModal: Component<WarningModalProps> = (props) => {
           >
             <div class="klinecharts-pro-warning-detail">
               <dl class="warning-detail-grid">
+                <Show when={!!w().symbol}>
+                  <dt>标的</dt>
+                  <dd>{w().symbol}</dd>
+                </Show>
                 <dt>类型</dt>
                 <dd>{labelWarningType(w().type)}</dd>
-                <dt>频率</dt>
-                <dd>{labelFrequency(w().frequency)}</dd>
                 <Show when={w().price != null && Number.isFinite(w().price)}>
                   <dt>价格</dt>
                   <dd>{String(w().price)}</dd>
@@ -123,14 +125,10 @@ const WarningModal: Component<WarningModalProps> = (props) => {
                   <dt>百分比</dt>
                   <dd>{`${w().percent}%`}</dd>
                 </Show>
-                <Show when={!!w().symbol}>
-                  <dt>标的</dt>
-                  <dd>{w().symbol}</dd>
-                </Show>
+                <dt>频率</dt>
+                <dd>{labelFrequency(w().frequency)}</dd>
                 <dt>备注</dt>
                 <dd>{w().remark?.trim() ? w().remark : '—'}</dd>
-                <dt>ID</dt>
-                <dd class="warning-detail-id">{w().id}</dd>
               </dl>
             </div>
           </Modal>

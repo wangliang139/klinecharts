@@ -12,9 +12,10 @@
  * limitations under the License.
  */
 
-import { ParentComponent, ParentProps, JSX } from 'solid-js'
+import { ParentComponent, ParentProps, JSX, onCleanup, onMount } from 'solid-js'
 
 import Button, { ButtonProps } from '../button'
+import { registerModalEscapeClose } from './modalEscapeStack'
 
 export interface ModalProps extends ParentProps {
   width?: number
@@ -28,9 +29,18 @@ export interface ModalProps extends ParentProps {
 const Modal: ParentComponent<ModalProps> = (props) => {
   let lastTouchY: number | null = null
 
+  onMount(() => {
+    if (!props.onClose) return
+    const unregister = registerModalEscapeClose(() => {
+      props.onClose?.()
+    })
+    onCleanup(unregister)
+  })
+
   const handleClose = (event: MouseEvent) => {
-    // @ts-expect-error
-    if (event.target && (event.target.classList as DOMTokenList).contains('klinecharts-pro-modal')) {
+    // 多级 Modal 嵌套时：子层遮罩同样带 klinecharts-pro-modal，冒泡到父层后 event.target 仍是子层节点，
+    // 仅 classList 判断会让父层误判为“点了自己的遮罩”从而一并关闭。只响应当层遮罩的直接点击。
+    if (event.target === event.currentTarget) {
       props.onClose?.()
     }
   }
