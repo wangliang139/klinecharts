@@ -143,7 +143,6 @@ export interface ChartProOptions {
   theme?: string;
   locale?: string;
   drawingBarVisible?: boolean;
-  orderPanelVisible?: boolean;
   symbol: SymbolInfo;
   period: Period;
   periods?: Period[];

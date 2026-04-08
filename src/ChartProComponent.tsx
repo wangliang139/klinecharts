@@ -554,9 +554,7 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
           }
         }}
       />
-      <div
-        class="klinecharts-pro-content"
-        data-orders-pane-visible={props.orderPanelVisible}>
+      <div class="klinecharts-pro-content">
         <Show when={loadingVisible()}>
           <Loading />
         </Show>
@@ -586,9 +584,6 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
           data-pane-style={props.overrides.backgroundType ?? 'solid'}
           data-drawing-bar-visible={drawingBarVisible()} />
       </div>
-      <Show when={props.orderPanelVisible}>
-        <div class="klinecharts-pro-order-pane-reserved" aria-hidden="true" />
-      </Show>
     </>
   )
 }
