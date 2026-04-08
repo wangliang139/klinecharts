@@ -41,3 +41,20 @@ export const convertFontweightNameToNumber = (weight: FontWeights): number => {
 
 	return weights[weight]
 }
+
+export const formatTimeByTz = (timestamp: number, locale: string, timezone: string): string => {
+	try {
+		return new Intl.DateTimeFormat(locale, {
+			timeZone: timezone,
+			year: 'numeric',
+			month: '2-digit',
+			day: '2-digit',
+			hour: '2-digit',
+			minute: '2-digit',
+			second: '2-digit',
+			hour12: false,
+		}).format(timestamp)
+	} catch {
+		return new Date(timestamp).toLocaleString(locale)
+	}
+}
