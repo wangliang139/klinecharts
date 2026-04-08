@@ -17,7 +17,6 @@ import anyWaves from './anyWaves'
 import abcd from './abcd'
 import xabcd from './xabcd'
 
-import positionLine from './position/orderLine'
 import brush from './brush'
 import positionAvgLine from './trading/positionAvgLine'
 import liquidationLine from './trading/liquidationLine'
@@ -29,7 +28,6 @@ const overlays = [
   fibonacciCircle(), fibonacciSegment(), fibonacciSpiral(),
   fibonacciSpeedResistanceFan(), fibonacciExtension(), gannBox(),
   threeWaves(), fiveWaves(), eightWaves(), anyWaves(), abcd(), xabcd(),
-  positionLine(),
   positionAvgLine(),
   liquidationLine(),
   pendingOrderLine(),

@@ -1,8 +1,7 @@
 import { Chart } from 'klinecharts';
-import { createSignal, startTransition } from "solid-js";
+import { createSignal } from "solid-js";
 import { setInputClass } from "../component/input";
-import { documentResize } from "./chartStateStore";
-import { fullScreen, indicatorModalVisible, instanceApi, orderModalVisible, orderPanelVisible, periodModalVisible, resolveRootNode, screenshotUrl, setIndicatorModalVisible, setOrderPanelVisible, setPeriodModalVisible, setScreenshotUrl, setSettingModalVisible, settingModalVisible, theme } from "./chartStore";
+import { fullScreen, indicatorModalVisible, instanceApi, periodModalVisible, resolveRootNode, screenshotUrl, setIndicatorModalVisible, setPeriodModalVisible, setScreenshotUrl, setSettingModalVisible, settingModalVisible, theme } from "./chartStore";
 export const [ctrlKeyedDown, setCtrlKeyedDown] = createSignal(false)
 export const [widgetref, setWidgetref] = createSignal<string | Chart | HTMLElement>('')
 export const [timerid, setTimerid] = createSignal<NodeJS.Timeout>()
@@ -18,7 +17,6 @@ export const useKeyEvents = () => {
         case 'o':
           break;
         case 'l':
-          showOrderlist()
           break;
         case 'i':
           if (allModalHidden('indi')) {
@@ -71,7 +69,6 @@ export const useKeyEvents = () => {
       setPeriodModalVisible(false)
 
       setSettingModalVisible(false)
-      setOrderPanelVisible(false)
       setIndicatorModalVisible(false)
       setScreenshotUrl('')
     }
@@ -87,32 +84,22 @@ export const useKeyEvents = () => {
   return { handleKeyDown, handleKeyUp }
 }
 
-const allModalHidden = (except: 'settings'|'indi'|'screenshot'|'order'|'period') => {
+const allModalHidden = (except: 'settings'|'indi'|'screenshot'|'period') => {
   let value = false
   switch (except) {
     case 'settings':
-      value = !indicatorModalVisible() && screenshotUrl() === '' && !orderModalVisible() && !periodModalVisible()
+      value = !indicatorModalVisible() && screenshotUrl() === '' && !periodModalVisible()
     case 'indi':
-      value = !settingModalVisible() && screenshotUrl() === '' && !orderModalVisible() && !periodModalVisible()
+      value = !settingModalVisible() && screenshotUrl() === '' && !periodModalVisible()
       break
     case 'screenshot':
-      value = !settingModalVisible() && !indicatorModalVisible() && !orderModalVisible() && !periodModalVisible()
-      break
-    case 'order':
-      value = !settingModalVisible() && !indicatorModalVisible() && screenshotUrl() === '' && !periodModalVisible()
+      value = !settingModalVisible() && !indicatorModalVisible() && !periodModalVisible()
       break
     case 'period':
-      value = !settingModalVisible() && !indicatorModalVisible() && screenshotUrl() === '' && !orderModalVisible()
+      value = !settingModalVisible() && !indicatorModalVisible() && screenshotUrl() === ''
       break
   }
   return value
-}
-
-const showOrderlist = async () => {
-  try {
-    await startTransition(() => setOrderPanelVisible(!orderPanelVisible()))
-    documentResize()
-  } catch (e) {}
 }
 
 const takeScreenshot = () => {

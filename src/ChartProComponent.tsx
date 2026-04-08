@@ -53,7 +53,7 @@ import { translateTimezone } from './widget/timezone-modal/data'
 import Chart from './Chart'
 import { useChartState } from './store/chartStateStore'
 import {
-  ChartProComponentProps, instanceApi, loadingVisible, orderPanelVisible,
+  ChartProComponentProps, instanceApi, loadingVisible,
   period, setInstanceApi, setPeriod, setRooltelId, setSelectedOverlay, setStyles, setSymbol, styles, symbol
 } from './store/chartStore'
 import {
@@ -554,30 +554,6 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
           }
         }}
       />
-      <div
-        class="klinecharts-pro-content"
-        data-orders-pane-visible={orderPanelVisible()}>
-        <Show when={loadingVisible()}>
-          <Loading />
-        </Show>
-        <Show when={drawingBarVisible()}>
-          <DrawingBar
-            locale={props.locale}
-            onDrawingItemClick={overlay => { pushOverlay(overlay) }}
-            onModeChange={mode => { instanceApi()?.overrideOverlay({ mode: mode as OverlayMode }) }}
-            onLockChange={lock => { instanceApi()?.overrideOverlay({ lock }) }}
-            onVisibleChange={visible => { instanceApi()?.overrideOverlay({ visible }) }}
-            onRemoveClick={(groupId) => { instanceApi()?.removeOverlay({ groupId }) }} />
-        </Show>
-        <div
-          ref={widgetRef}
-          class='klinecharts-pro-widget'
-          data-pane-style={props.overrides.backgroundType ?? 'solid'}
-          data-drawing-bar-visible={drawingBarVisible()} />
-      </div>
-      <Show when={orderPanelVisible()}>
-        <div class="klinecharts-pro-order-pane-reserved" aria-hidden="true" />
-      </Show>
     </>
   )
 }

@@ -10,14 +10,12 @@ export interface PaneProperties extends Styles {
   backgroundGradientEndColor: string
 }
 
-export interface ChartProComponentProps extends Required<Omit<ChartProOptions, 'container' | 'datafeed' | 'orderController'>> {
+export interface ChartProComponentProps extends Required<Omit<ChartProOptions, 'container' | 'datafeed'>> {
   ref: (chart: ChartPro) => void
   dataloader: ChartDataLoaderType
 }
 
 export const [drawingBarVisible, setDrawingBarVisible] = createSignal(false)
-export const [orderModalVisible, setOrderModalVisible] = createSignal(false)
-export const [orderPanelVisible, setOrderPanelVisible] = createSignal(false)
 export const [settingModalVisible, setSettingModalVisible] = createSignal(false)
 export const [indicatorModalVisible, setIndicatorModalVisible] = createSignal(false)
 export const [periodModalVisible, setPeriodModalVisible] = createSignal(false)

@@ -25,7 +25,7 @@ import {
   PaneOptions,
 } from "klinecharts";
 import { PaneProperties } from "../store/chartStore";
-import { OrderOverlay, ProOverlayCreate } from "./overlayTypes";
+import { ProOverlayCreate } from "./overlayTypes";
 
 export type FontWeights =
   | "thin"
@@ -37,12 +37,8 @@ export type FontWeights =
   | "bold"
   | "extra-bold"
   | "black";
-export type OrderType = "buy" | "sell" | "buystop" | "buylimit" | "sellstop" | "selllimit";
-export type OrderModalType = "placeorder" | "modifyorder" | "closepartial";
-export type ExitType = "stoploss" | "takeprofit" | "breakeven" | "manualclose" | "cancel";
 
 export type DatafeedSubscribeCallback = (data: KLineData, timestamp?: number) => void;
-export type OrderPlacedCallback = (data: OrderInfo | null) => void; //this should be called when a user has successfully placed an order from consumer project side
 
 export interface UndoOptions {
   /**
@@ -65,38 +61,6 @@ export interface SymbolInfo {
   logo?: string;
 }
 
-export interface OrderInfo {
-  orderId: number;
-  action: OrderType;
-  entryPoint: number;
-  exitPoint?: number;
-  stopLoss?: number;
-  takeProfit?: number;
-  lotSize: number;
-  pips?: number;
-  pl?: number;
-  entryTime?: string;
-  exitTime?: string;
-  exitType?: ExitType;
-  partials?: string;
-  accountId?: number;
-}
-
-export interface OrderModifyInfo {
-  id: number;
-  action?: OrderType;
-  entrypoint?: number;
-  exitpoint?: number;
-  stoploss?: number;
-  takeprofit?: number;
-  lotsize?: number;
-  pips?: number;
-  pl?: number;
-  exittime?: string;
-  exittype?: ExitType;
-  partials?: string;
-}
-
 export interface Period extends DefaultPeriod {
   text: string;
 }
@@ -108,8 +72,6 @@ export interface ProChart extends Chart {
   setActiveChart(id: string): void;
   chartById(id: string): Chart | undefined;
   getOverlayById(id: string): Nullable<Overlay>;
-  createOrderLine(options?: UndoOptions): Nullable<OrderOverlay>;
-  createOrderLines(nums: number, options?: UndoOptions): Array<Nullable<OrderOverlay>>;
 }
 
 type IndicatorsType = {
@@ -126,41 +88,6 @@ type OverlaysType = {
 type FiguresType = {
   value?: string | FigureCreate;
   ctx: CanvasRenderingContext2D;
-};
-
-type OrderStyleType = {
-  lineStyle?: {
-    style?: string;
-    size?: number;
-    color?: string;
-    dashedValue?: number[];
-  };
-  labelStyle?: {
-    style?: string;
-    size?: number;
-    family?: string;
-    weight?: string;
-    paddingLeft?: number;
-    paddingRight?: number;
-    paddingBottom?: number;
-    paddingTop?: number;
-    borderStyle?: string;
-    borderSize?: number;
-    color?: string;
-    borderColor?: string;
-    backgroundColor?: string;
-  };
-};
-
-export type OrderStylesType = {
-  buyStyle?: OrderStyleType;
-  buyLimitStyle?: OrderStyleType;
-  buyStopStyle?: OrderStyleType;
-  sellStyle?: OrderStyleType;
-  sellLimitStyle?: OrderStyleType;
-  sellStopStyle?: OrderStyleType;
-  stopLossStyle?: OrderStyleType;
-  takeProfitStyle?: OrderStyleType;
 };
 
 /** 设置中「交易展示」持久化（不写入 Styles / styleObj） */
@@ -194,7 +121,6 @@ export interface ChartObjType {
   overlays?: OverlaysType[];
   figures?: FiguresType[];
   indicators?: IndicatorsType[];
-  orderStyles?: OrderStylesType;
   trading?: TradingConfig;
 }
 
@@ -208,22 +134,6 @@ export interface Datafeed {
 export interface ChartDataLoaderType extends DataLoader {
   searchSymbols(search?: string): Promise<SymbolInfo[]>;
   loading: boolean;
-}
-
-export interface OrderResource {
-  retrieveOrder(order_id: number): Promise<OrderInfo | null>;
-  retrieveOrders(action?: OrderType, account_id?: number | string): Promise<OrderInfo[] | null>;
-  openOrder(
-    action: OrderType,
-    lot_size: number,
-    entry_price: number,
-    stop_loss?: number,
-    take_profit?: number,
-  ): Promise<OrderInfo | null>;
-  closeOrder(order_id: number, lotsize?: number): Promise<OrderInfo | null>;
-  modifyOrder(order: OrderModifyInfo): Promise<OrderInfo | null>;
-  unsetSlOrTP(order_id: string | number, slortp: "sl" | "tp"): Promise<OrderInfo | null>;
-  launchOrderModal(type: OrderModalType, callback: OrderPlacedCallback, order?: OrderModifyInfo): void;
 }
 
 export interface ChartProOptions {
@@ -242,7 +152,6 @@ export interface ChartProOptions {
   subIndicators?: string[];
   datafeed: Datafeed;
   dataTimestamp?: number;
-  orderController?: OrderResource;
   overrides?: DeepPartial<PaneProperties>;
 }
 

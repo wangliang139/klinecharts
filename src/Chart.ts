@@ -32,9 +32,7 @@ import {
   VisibleRange,
   ZoomAnchor,
 } from "klinecharts";
-import { isArray } from "lodash";
-import { OrderOverlay } from "./types/overlayTypes";
-import { ProChart, UndoOptions } from "./types/types";
+import { ProChart } from "./types/types";
 
 export default class Chart implements ProChart {
   private _chart: KLineChart;
@@ -284,53 +282,5 @@ export default class Chart implements ProChart {
 
   getOverlayById(id: string): Nullable<Overlay> {
     return this._chart.getOverlays({ id })[0] ?? null;
-  }
-
-  createOrderLine(options?: UndoOptions): Nullable<OrderOverlay> {
-    const dataList = this._chart.getDataList();
-    const overlays = this._chart.createOverlay({
-      name: "orderLine",
-      paneId: "candle_pane",
-      points: [
-        {
-          timestamp: dataList[dataList.length - 40].timestamp,
-          value: dataList[dataList.length - 40].close,
-        },
-      ],
-    });
-    if (!overlays) {
-      return null;
-    }
-
-    ///@ts-expect-error
-    return this._chart.getOverlays({ id: overlays as string, paneId: "candle_pane" })[0] as Nullable<OrderOverlay>;
-  }
-
-  createOrderLines(nums: number, options?: UndoOptions): Array<Nullable<OrderOverlay>> {
-    const points: Array<Partial<Point>> = [];
-    const dataList = this._chart.getDataList();
-    const step = Math.floor(dataList.length / (nums + 1));
-    for (let i = 1; i <= nums; i++) {
-      points.push({
-        timestamp: dataList[step * i].timestamp,
-        value: dataList[step * i].close,
-      });
-    }
-
-    const values: OverlayCreate = {
-      name: "orderLine",
-      paneId: "candle_pane",
-      points: points,
-    };
-    const overlays = this._chart.createOverlay(values);
-
-    if (!overlays || (isArray(overlays) && overlays.length === 0)) {
-      return [];
-    }
-
-    ///@ts-expect-error
-    return (overlays as Array<string>).map(
-      (o) => this._chart.getOverlays({ id: o!, paneId: "canlde_pane" })[0],
-    ) as Array<Nullable<OrderOverlay>>;
   }
 }

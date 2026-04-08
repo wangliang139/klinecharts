@@ -18,8 +18,6 @@ import { registerOverlay } from 'klinecharts'
 import overlays from './extension'
 
 import DefaultDatafeed from './DefaultDatafeed'
-import DefaultOrderController from './DefaultOrderController'
-import DummyOrderController from './DummyOrderController'
 import KLineChartPro from './KLineChartPro'
 
 import { load } from './i18n'
@@ -30,13 +28,6 @@ import {
   ChartProOptions,
   Datafeed,
   DatafeedSubscribeCallback,
-  ExitType,
-  OrderInfo,
-  OrderModalType,
-  OrderModifyInfo,
-  OrderPlacedCallback,
-  OrderResource,
-  OrderType,
   PendingOrder,
   Period,
   Position,
@@ -55,10 +46,9 @@ overlays.forEach(o => { registerOverlay(o) })
 
 export {
   DefaultDatafeed,
-  DefaultOrderController,
-  DummyOrderController,
   KLineChartPro,
   load as loadLocales
 }
 
-export type { ChartObjType, ChartPro, ChartProOptions, Datafeed, DatafeedSubscribeCallback, ExitType, OrderInfo, OrderModalType, OrderModifyInfo, OrderPlacedCallback, OrderResource, OrderType, PendingOrder, Period, ProChart, SymbolInfo, TradingConfig, Position, PositionSide }
+export type { ChartObjType, ChartPro, ChartProOptions, Datafeed, DatafeedSubscribeCallback, PendingOrder, Period, Position, PositionSide, ProChart, SymbolInfo, TradingConfig }
+
