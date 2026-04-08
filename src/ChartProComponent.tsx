@@ -64,7 +64,7 @@ import {
   setPositionsData,
   syncTradingOverlays
 } from './store/tradingStore'
-import { Period, SymbolInfo } from './types/types'
+import { HisOrder, Period, SymbolInfo } from './types/types'
 const { createIndicator, pushOverlay, restoreChartState } = useChartState()
 
 interface PrevSymbolPeriod {
@@ -95,6 +95,9 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
   const [drawingBarVisible, setDrawingBarVisible] = createSignal(props.drawingBarVisible)
 
   const [symbolSearchModalVisible, setSymbolSearchModalVisible] = createSignal(false)
+  const [hisOrderHoverVisible, setHisOrderHoverVisible] = createSignal(false)
+  const [hisOrderHoverData, setHisOrderHoverData] = createSignal<HisOrder | null>(null)
+  let hisOrderHoverHideTimer: number | null = null
 
   const [indicatorSettingModalParams, setIndicatorSettingModalParams] = createSignal({
     visible: false, indicatorName: '', paneId: '', calcParams: [] as Array<any>
@@ -128,7 +131,30 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
     instanceApi()?.resize()
   }
 
+  const onHisOrderHover = (evt: Event) => {
+    const event = evt as CustomEvent<{ visible: boolean; order: HisOrder | null }>
+    const visible = !!event.detail?.visible
+    if (visible) {
+      if (hisOrderHoverHideTimer != null) {
+        window.clearTimeout(hisOrderHoverHideTimer)
+        hisOrderHoverHideTimer = null
+      }
+      setHisOrderHoverData(event.detail?.order ?? null)
+      setHisOrderHoverVisible(true)
+      return
+    }
+    if (hisOrderHoverHideTimer != null) {
+      window.clearTimeout(hisOrderHoverHideTimer)
+    }
+    hisOrderHoverHideTimer = window.setTimeout(() => {
+      setHisOrderHoverVisible(false)
+      setHisOrderHoverData(null)
+      hisOrderHoverHideTimer = null
+    }, 120)
+  }
+
   onMount(() => {
+    window.addEventListener('klinecharts-pro-his-order-hover', onHisOrderHover as EventListener)
     window.addEventListener('resize', documentResize)
     setInstanceApi(Chart.init(widgetRef!, {
       formatter: {
@@ -278,6 +304,11 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
   })
 
   onCleanup(() => {
+    if (hisOrderHoverHideTimer != null) {
+      window.clearTimeout(hisOrderHoverHideTimer)
+      hisOrderHoverHideTimer = null
+    }
+    window.removeEventListener('klinecharts-pro-his-order-hover', onHisOrderHover as EventListener)
     window.removeEventListener('resize', documentResize)
     dispose(widgetRef!)
   })
@@ -560,6 +591,36 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
             instanceApi()?.overrideIndicator({ name: modalParams.indicatorName, calcParams: params, paneId: modalParams.paneId })
           }}
         />
+      </Show>
+      <Show when={hisOrderHoverVisible() && !!hisOrderHoverData()}>
+        <div style={{
+          position: 'fixed',
+          top: '84px',
+          right: '16px',
+          width: '220px',
+          padding: '10px 12px',
+          'border-radius': '8px',
+          border: `1px solid ${hisOrderHoverData()!.isBuy ? '#2ebd85' : '#f6465d'}`,
+          'background-color': '#ffffff',
+          'box-shadow': '0 8px 20px rgba(0, 0, 0, 0.14)',
+          'z-index': 10005,
+          'pointer-events': 'none',
+          'font-size': '13px',
+          color: '#1f2630',
+          display: 'flex',
+          'flex-direction': 'column',
+          gap: '6px'
+        }}>
+          <div style={{ 'font-weight': 700, color: hisOrderHoverData()!.isBuy ? '#2ebd85' : '#f6465d' }}>
+            {hisOrderHoverData()!.isBuy ? '买入 (B)' : '卖出 (S)'}
+          </div>
+          <div><strong>订单ID：</strong>{String(hisOrderHoverData()!.orderId ?? hisOrderHoverData()!.id ?? '-')}</div>
+          <div><strong>价格：</strong>{String(hisOrderHoverData()!.price)}</div>
+          <div><strong>数量：</strong>{String(hisOrderHoverData()!.size)}</div>
+          <div><strong>手续费：</strong>{String(hisOrderHoverData()!.fee ?? '-')}</div>
+          <div><strong>已实现盈亏：</strong>{String(hisOrderHoverData()!.pnl ?? '-')}</div>
+          <div><strong>成交时间：</strong>{new Date(hisOrderHoverData()!.timestamp).toLocaleString()}</div>
+        </div>
       </Show>
       <PeriodBar
         locale={props.locale}

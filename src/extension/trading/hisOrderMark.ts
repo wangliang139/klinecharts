@@ -4,7 +4,6 @@
 
 import { Coordinate, OverlayEvent, OverlayTemplate, TextStyle } from "klinecharts";
 
-import { formatWesternGrouped } from "../../helpers";
 import type { HisOrder } from "../../types/types";
 
 const BUY_COLOR = "#2ebd85";
@@ -12,10 +11,8 @@ const SELL_COLOR = "#f6465d";
 const MARK_RADIUS = 6;
 const MARK_OFFSET = 14;
 const STACK_GAP = 14;
-const HOVER_GAP = 10;
-const LINE_HEIGHT = 18;
 
-const hoveredOverlayIds = new Set<string>();
+const HIS_ORDER_HOVER_EVENT = "klinecharts-pro-his-order-hover";
 
 const markerTextStyle: TextStyle = {
   style: "fill",
@@ -34,28 +31,6 @@ const markerTextStyle: TextStyle = {
   paddingTop: 0,
   paddingBottom: 0,
 };
-
-const hoverTextStyle = (color: string): TextStyle => ({
-  style: "stroke_fill",
-  size: 11,
-  family: "Arial, sans-serif",
-  weight: "normal",
-  color,
-  backgroundColor: "#ffffff",
-  borderColor: color,
-  borderStyle: "solid",
-  borderSize: 1,
-  borderDashedValue: [],
-  borderRadius: 2,
-  paddingLeft: 4,
-  paddingRight: 4,
-  paddingTop: 3,
-  paddingBottom: 3,
-});
-
-function formatTime(timestamp: number): string {
-  return new Date(timestamp).toLocaleString();
-}
 
 const historicalOrderMark = (): OverlayTemplate => ({
   name: "historicalOrderMark",
@@ -102,47 +77,31 @@ const historicalOrderMark = (): OverlayTemplate => ({
         type: "text",
         attrs: { x, y, text: markText, align: "center", baseline: "middle" },
         styles: markerTextStyle,
-        ignoreEvent: true,
+        ignoreEvent: false,
       },
     ];
-
-    if (overlay.id && hoveredOverlayIds.has(overlay.id)) {
-      const symbol = chart.getSymbol();
-      const pricePrecision = symbol?.pricePrecision ?? 2;
-      const volumePrecision = symbol?.volumePrecision ?? 4;
-      const lines = [
-        `${markText} ${ext.isBuy ? "BUY" : "SELL"}  #${ext.orderId ?? ext.id ?? "-"}`,
-        `Px ${formatWesternGrouped(ext.price, pricePrecision)}  Qty ${formatWesternGrouped(ext.size, volumePrecision)}`,
-        `Fee ${formatWesternGrouped(ext.fee ?? 0, pricePrecision)}  PnL ${formatWesternGrouped(ext.pnl ?? 0, pricePrecision)}`,
-        `${formatTime(ext.timestamp)}`,
-      ];
-      const baseY = ext.isBuy ? y + HOVER_GAP : y - HOVER_GAP;
-      const direction = ext.isBuy ? 1 : -1;
-      lines.forEach((line, idx) => {
-        figures.push({
-          key: `his-order-hover-${idx}`,
-          type: "text",
-          attrs: {
-            x: x + 12,
-            y: baseY + direction * idx * LINE_HEIGHT,
-            text: line,
-            align: "left",
-            baseline: ext.isBuy ? "top" : "bottom",
-          },
-          styles: hoverTextStyle(color),
-          ignoreEvent: true,
-        });
-      });
-    }
 
     return figures;
   },
   onMouseEnter: (event: OverlayEvent<unknown>) => {
-    if (event.overlay.id) hoveredOverlayIds.add(event.overlay.id);
+    console.log("onMouseEnter"); 
+    const ext = event.overlay.extendData as (HisOrder & { stackIndex?: number }) | undefined;
+    if (ext) {
+      window.dispatchEvent(
+        new CustomEvent(HIS_ORDER_HOVER_EVENT, {
+          detail: { visible: true, order: ext },
+        }),
+      );
+    }
     return false;
   },
   onMouseLeave: (event: OverlayEvent<unknown>) => {
-    if (event.overlay.id) hoveredOverlayIds.delete(event.overlay.id);
+    console.log("onMouseLeave"); 
+    window.dispatchEvent(
+      new CustomEvent(HIS_ORDER_HOVER_EVENT, {
+        detail: { visible: false, order: null },
+      }),
+    );
     return false;
   },
   onPressedMoveStart: () => false,
