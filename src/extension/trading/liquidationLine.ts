@@ -117,9 +117,14 @@ const liquidationLine = (): OverlayTemplate => ({
     const symbol = chart.getSymbol();
     const pricePrecision = symbol?.pricePrecision ?? 2;
     const label = `${utils.formatPrecision(liq, pricePrecision)}`;
-    const textWidth = utils.calcTextWidth(label) + labelStyle.paddingLeft! + labelStyle.paddingRight!;
+    const displayText = `Liq: ${label}`;
+    const padL = labelStyle.paddingLeft!;
+    const padR = labelStyle.paddingRight!;
+    const labelBoxWidth = utils.calcTextWidth(displayText) + padL + padR;
     const marginLeft = 16;
-    const lineStartX = marginLeft + textWidth;
+    /** 标签右缘后再空出一段，避免线宽/抗锯齿压到边框 */
+    const gapAfterLabel = 2;
+    const lineStartX = marginLeft + labelBoxWidth + gapAfterLabel;
 
     return [
       {
@@ -140,7 +145,7 @@ const liquidationLine = (): OverlayTemplate => ({
         attrs: {
           x: marginLeft,
           y,
-          text: 'Liq: ' + label,
+          text: displayText,
           align: "left",
           baseline: "middle",
         },
