@@ -1,4 +1,5 @@
 import { KLineChartPro } from "@wangliang139/klinecharts-pro";
+import type { WarningItem, WarningItemInput } from "@wangliang139/klinecharts-pro";
 
 import { createApiDatafeed } from "./apiDatafeed";
 import { createApolloClient } from "./apollo";
@@ -26,6 +27,35 @@ const lockPageScrollWhenInteractingChart = (event: Event) => {
 chartContainer.addEventListener("wheel", lockPageScrollWhenInteractingChart, { passive: false });
 chartContainer.addEventListener("touchmove", lockPageScrollWhenInteractingChart, { passive: false });
 
+let warningSeq = 3;
+let warningState: WarningItem[] = [
+  {
+    id: "warning-1",
+    type: "price_reach",
+    frequency: "repeat",
+    price: 72000,
+    remark: "示例：价格达到",
+    symbol: "BTC/USDT:FUTURE",
+  },
+  {
+    id: "warning-2",
+    type: "price_rise_to",
+    frequency: "once",
+    price: 66000,
+    remark: "示例：价格上涨至",
+    symbol: "BTC/USDT:FUTURE",
+  },
+];
+
+const normalizeWarning = (input: WarningItemInput): WarningItem => {
+  const id = input.id?.trim() || `warning-${warningSeq++}`;
+  return {
+    ...input,
+    id,
+    symbol: input.symbol ?? "BTC/USDT:FUTURE",
+  };
+};
+
 const chart = new KLineChartPro({
   container: "chart",
   symbol: {
@@ -52,6 +82,18 @@ const chart = new KLineChartPro({
   theme: "dark",
   locale: "zh-CN",
   drawingBarVisible: false,
+  warnings: warningState,
+  onAddWarning: async (payload) => {
+    const warning = normalizeWarning(payload);
+    warningState = [...warningState, warning];
+    chart.setWarnings(warningState);
+    console.log("[dev] onAddWarning", warning);
+  },
+  onRemoveWarning: async (warning) => {
+    warningState = warningState.filter((item) => item.id !== warning.id);
+    chart.setWarnings(warningState);
+    console.log("[dev] onRemoveWarning", warning);
+  },
 });
 
 chart.setStyles({
@@ -115,6 +157,7 @@ setTimeout(() => {
       pnl: -12.8,
     },
   ]);
+  chart.setWarnings(warningState);
 }, 1000);
 
 setTimeout(() => {
