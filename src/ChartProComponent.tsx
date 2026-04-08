@@ -100,6 +100,7 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
   const [hisOrderHoverData, setHisOrderHoverData] = createSignal<HisOrder | null>(null)
   const [hisOrderHoverAnchor, setHisOrderHoverAnchor] = createSignal<{ x: number | null; y: number | null }>({ x: null, y: null })
   let hisOrderHoverHideTimer: number | null = null
+  const tradingOverlayResyncTimers: number[] = []
 
   const [indicatorSettingModalParams, setIndicatorSettingModalParams] = createSignal({
     visible: false, indicatorName: '', paneId: '', calcParams: [] as Array<any>
@@ -157,6 +158,18 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
       setHisOrderHoverAnchor({ x: null, y: null })
       hisOrderHoverHideTimer = null
     }, 120)
+  }
+
+  const scheduleTradingOverlayResync = () => {
+    // 周期/品种切换后数据加载是异步的，分段重试可覆盖“先清空后到数”的窗口。
+    ;[0, 120, 360, 900].forEach((delay) => {
+      const timer = window.setTimeout(() => {
+        syncTradingOverlays()
+        const idx = tradingOverlayResyncTimers.indexOf(timer)
+        if (idx >= 0) tradingOverlayResyncTimers.splice(idx, 1)
+      }, delay)
+      tradingOverlayResyncTimers.push(timer)
+    })
   }
 
   onMount(() => {
@@ -314,6 +327,10 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
       window.clearTimeout(hisOrderHoverHideTimer)
       hisOrderHoverHideTimer = null
     }
+    while (tradingOverlayResyncTimers.length > 0) {
+      const timer = tradingOverlayResyncTimers.pop()
+      if (timer != null) window.clearTimeout(timer)
+    }
     window.removeEventListener('klinecharts-pro-his-order-hover', onHisOrderHover as EventListener)
     window.removeEventListener('resize', documentResize)
     dispose(widgetRef!)
@@ -350,6 +367,7 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
 
     if (periodChanged) {
       api?.setPeriod(p)
+      scheduleTradingOverlayResync()
     }
 
     const onlyPeriodChanged = periodChanged && !symbolKeyChanged
@@ -359,6 +377,7 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
         pricePrecision: s.pricePrecision ?? 2,
         volumePrecision: s.volumePrecision ?? 0,
       } as PickPartial<KLineSymbolInfo, 'pricePrecision' | 'volumePrecision'>)
+      scheduleTradingOverlayResync()
       // klinecharts 在 ticker 不变时更新精度，可能不会立即重绘 y 轴刻度。
       // 这里补一次轻量刷新，确保刻度文本即时按新精度生效。
       if (precisionChangedOnly) {
