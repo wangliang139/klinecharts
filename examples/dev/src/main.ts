@@ -53,6 +53,7 @@ chart.setStyles({
 
 setTimeout(() => {
   console.log("style:", chart.getInstanceApi()?.getStyles());
+  console.log("overlay:", chart.getInstanceApi()?.getOverlays());
   const api = chart.getInstanceApi();
   const list = api?.getDataList() ?? [];
   const last = list.at(-1);

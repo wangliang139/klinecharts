@@ -70,7 +70,7 @@ const axisPriceBox = (color: string): TextStyle => ({
   family: "Arial, sans-serif",
   weight: "normal",
   color: color,
-  backgroundColor: "rgba(255,255,255,0.75)",
+  backgroundColor: "rgba(255,255,255,0.5)",
   borderColor: color,
   borderStyle: "solid",
   borderSize: 1,
