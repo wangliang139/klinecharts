@@ -5,7 +5,7 @@
 
 import { Coordinate, LineStyle, OverlayEvent, OverlayTemplate, TextStyle, utils } from "klinecharts";
 
-import { getPrecision } from "../../helpers";
+import { formatWesternGrouped, getPrecision } from "../../helpers";
 import type { TradingPositionSide } from "../../types/types";
 
 const LONG_COLOR = "#2ebd85";
@@ -71,8 +71,8 @@ const positionAvgLine = (): OverlayTemplate => ({
     const cur = symbol?.priceCurrency;
     const currency = typeof cur === "string" && cur ? `${cur.toUpperCase()} ` : "";
 
-    const qtyText = utils.formatPrecision(ext.size, volumePrecision);
-    const pnlText = `${pnlRaw >= 0 ? "+" : ""}${currency}${utils.formatPrecision(pnlRaw, pricePrecision)}`;
+    const qtyText = formatWesternGrouped(ext.size, volumePrecision);
+    const pnlText = `${pnlRaw >= 0 ? "+" : ""}${currency}${formatWesternGrouped(pnlRaw, pricePrecision)}`;
 
     const sideColor = ext.side === "long" ? LONG_COLOR : SHORT_COLOR;
     const pnlColor = pnlRaw >= 0 ? PNL_POSITIVE : PNL_NEGATIVE;
@@ -144,7 +144,7 @@ const positionAvgLine = (): OverlayTemplate => ({
           coordinates[0].y
         : coordinates[0].y;
     const isFromZero = yAxis?.isFromZero() ?? false;
-    const text = utils.formatPrecision(avgPrice, precision.price);
+    const text = formatWesternGrouped(avgPrice, precision.price);
     return {
       type: "text",
       attrs: {

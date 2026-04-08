@@ -1,6 +1,15 @@
 import { Chart, Nullable, Overlay, YAxis } from "klinecharts"
 import { FontWeights } from "./types/types"
 
+/** 西式分组：千分位 `,`、小数 `.`（如 12,345.67） */
+export function formatWesternGrouped(value: number, fractionDigits: number): string {
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+    useGrouping: true,
+  }).format(value)
+}
+
 export const getScreenSize = () => {
 	return {x: window.innerWidth, y: window.innerHeight}
 }

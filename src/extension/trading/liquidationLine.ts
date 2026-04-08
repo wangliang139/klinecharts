@@ -14,7 +14,7 @@ import {
   utils,
 } from "klinecharts";
 
-import { getPrecision } from "../../helpers";
+import { formatWesternGrouped, getPrecision } from "../../helpers";
 
 function pickValueFromConvertResult(
   r: Partial<Point> | Array<Partial<Point>> | undefined,
@@ -116,7 +116,7 @@ const liquidationLine = (): OverlayTemplate => ({
 
     const symbol = chart.getSymbol();
     const pricePrecision = symbol?.pricePrecision ?? 2;
-    const label = `${utils.formatPrecision(liq, pricePrecision)}`;
+    const label = formatWesternGrouped(liq, pricePrecision);
     const displayText = `Liq: ${label}`;
     const padL = labelStyle.paddingLeft!;
     const padR = labelStyle.paddingRight!;
@@ -176,7 +176,7 @@ const liquidationLine = (): OverlayTemplate => ({
       (chart.convertToPixel({ timestamp: last.timestamp, value: liq }) as Partial<Coordinate>).y ??
       coordinates[0].y;
     const isFromZero = yAxis?.isFromZero() ?? false;
-    const text = utils.formatPrecision(liq, precision.price);
+    const text = formatWesternGrouped(liq, precision.price);
     return {
       type: "text",
       attrs: {
