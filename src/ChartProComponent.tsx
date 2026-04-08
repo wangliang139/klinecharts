@@ -45,8 +45,8 @@ import {
   SymbolSearchModal,
   TimezoneModal
 } from './widget'
-import { WarningDetailFields } from './widget/warning-detail-fields'
 import WarningModal from './widget/warning-modal'
+import { WarningDetailFields } from './widget/warning-modal/warning-detail-fields'
 
 import { translateTimezone } from './widget/timezone-modal/data'
 

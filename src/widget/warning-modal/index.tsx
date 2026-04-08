@@ -3,7 +3,7 @@ import { Component, createSignal, For, Show } from 'solid-js'
 import { Modal } from '../../component'
 import { WarningItem, WarningItemInput } from '../../types/types'
 import WarningAddModal from '../warning-add-modal'
-import { WarningDetailFields } from '../warning-detail-fields'
+import { WarningDetailFields } from './warning-detail-fields'
 
 export interface WarningModalProps {
   warnings: WarningItem[]
