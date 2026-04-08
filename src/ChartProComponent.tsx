@@ -299,6 +299,11 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
       (prev.symbol?.ticker !== s.ticker ||
         (prev.symbol?.pricePrecision ?? 2) !== (s.pricePrecision ?? 2) ||
         (prev.symbol?.volumePrecision ?? 0) !== (s.volumePrecision ?? 0))
+    const precisionChangedOnly =
+      prev !== undefined &&
+      prev.symbol?.ticker === s.ticker &&
+      ((prev.symbol?.pricePrecision ?? 2) !== (s.pricePrecision ?? 2) ||
+        (prev.symbol?.volumePrecision ?? 0) !== (s.volumePrecision ?? 0))
 
     if (prev !== undefined && prev.symbol?.ticker !== s.ticker) {
       setSelectedOverlay(null)
@@ -315,6 +320,11 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
         pricePrecision: s.pricePrecision ?? 2,
         volumePrecision: s.volumePrecision ?? 0,
       } as PickPartial<KLineSymbolInfo, 'pricePrecision' | 'volumePrecision'>)
+      // klinecharts 在 ticker 不变时更新精度，可能不会立即重绘 y 轴刻度。
+      // 这里补一次轻量刷新，确保刻度文本即时按新精度生效。
+      if (precisionChangedOnly) {
+        api?.resize()
+      }
     }
 
     return { symbol: s, period: p }

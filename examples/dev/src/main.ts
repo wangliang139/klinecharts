@@ -23,8 +23,8 @@ const chart = new KLineChartPro({
     shortName: "BTC/USDT:FUTURE",
     market: "binance",
     exchange: "binance",
-    pricePrecision: 2,
-    volumePrecision: 2,
+    pricePrecision: 4,
+    volumePrecision: 4,
     priceCurrency: "USDT",
     type: "crypto",
   },
@@ -68,7 +68,16 @@ setTimeout(() => {
     { side: "short", isBuy: false, price: close + 200, size: 10 },
     { side: "short", isBuy: false, size: 10 , orderType: "market"},
   ]);
-}, 1500);
+}, 1000);
+
+setTimeout(() => {
+  const symbol = chart.getSymbol();
+  chart.setSymbol({
+    ...symbol,
+    pricePrecision: 2,
+    volumePrecision: 2,
+  });
+}, 2000);
 
 window.addEventListener("resize", () => {
   chart.resize();
