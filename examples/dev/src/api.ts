@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+import { gql } from "@apollo/client/core";
 
 export enum Exchange {
   Binance = "binance",
@@ -248,13 +248,11 @@ export async function queryKline(input: {
   endTime?: number;
   limit?: number;
 }): Promise<Kline[]> {
-  console.log('[queryKline] input', input)
-  const uri = import.meta.env.VITE_GRAPHQL_HTTP ?? '/query';
+  console.log("[queryKline] input", input);
+  const uri = import.meta.env.VITE_GRAPHQL_HTTP ?? "/query";
   const res = await fetch(uri, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json',
-      'Authorization': `Bearer ${import.meta.env.VITE_GRAPHQL_AUTH_TOKEN}`
-     },
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${import.meta.env.VITE_GRAPHQL_AUTH_TOKEN}` },
     body: JSON.stringify({
       query: QUERY_KLINE,
       variables: { input },
@@ -267,7 +265,10 @@ export async function queryKline(input: {
     data?: { Result?: Kline[] };
     errors?: { message?: string }[];
   };
-  const errMsg = json.errors?.map((e) => e.message).filter(Boolean).join('; ');
+  const errMsg = json.errors
+    ?.map((e) => e.message)
+    .filter(Boolean)
+    .join("; ");
   if (errMsg) throw new Error(errMsg);
   return json.data?.Result ?? [];
 }

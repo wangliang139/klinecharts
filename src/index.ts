@@ -61,4 +61,4 @@ export {
   load as loadLocales
 }
 
-export type { ChartObjType, ChartPro, ChartProOptions, Datafeed, DatafeedSubscribeCallback, ExitType, OrderInfo, OrderModalType, OrderModifyInfo, OrderPlacedCallback, OrderResource, OrderType, PendingOrder, Period, ProChart, SymbolInfo, TradingConfig, Position as TradingPosition, PositionSide as TradingPositionSide }
+export type { ChartObjType, ChartPro, ChartProOptions, Datafeed, DatafeedSubscribeCallback, ExitType, OrderInfo, OrderModalType, OrderModifyInfo, OrderPlacedCallback, OrderResource, OrderType, PendingOrder, Period, ProChart, SymbolInfo, TradingConfig, Position, PositionSide }

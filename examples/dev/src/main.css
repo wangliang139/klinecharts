@@ -14,3 +14,37 @@ body {
   height: min(720px, calc(100vh - 24px));
   min-height: 300px;
 }
+
+.dev-toolbar {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 10;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  backdrop-filter: blur(8px);
+}
+
+.dev-toolbar button {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  background: #fff;
+  cursor: pointer;
+}
+
+.dev-toolbar button:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.dev-hint {
+  margin-left: 6px;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.6);
+  user-select: none;
+}
