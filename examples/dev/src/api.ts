@@ -126,6 +126,52 @@ export type Kline = {
   closeTs: number;
 };
 
+export type Order = {
+  accountId: string;
+  botId: number;
+  exchange: string;
+  symbol: string;
+  clientOrderId: string;
+  orderId: string;
+  drivedOrderId: string;
+  side: string;
+  isBuy: boolean;
+  orderType: string;
+  algoType: string;
+  source: string;
+  price: string;
+  originalQty: string;
+  executedQty: string;
+  originalQuoteQty: string;
+  executedQuoteQty: string;
+  avgPrice: string;
+  priceWorkingType: string;
+  priceMode: string;
+  status: string;
+  timeInForce: string;
+  reduceOnly: boolean;
+  closePosition: boolean;
+  postOnly: boolean;
+  priceProtect: boolean;
+  isWorking: boolean;
+  workingTs: number;
+  rejectReason: string;
+  createdTs: number;
+  updatedTs: number;
+  finishedTs: number;
+  locked?: string;
+  lockedAsset?: string;
+  fee?: string;
+  feeAsset?: string;
+  realizedPnl?: string;
+  pnlAsset?: string; // 现货订单 realizedPnl 对应的资产；买入=quote，卖出=base
+};
+
+export type OrdersConnection = {
+  list: Order[];
+  totalCount: number;
+};
+
 export type StreamEvent = {
   type: "ticker" | "trade" | "depth" | "kline" | "mark_price" | "social";
   ticker?: Ticker;
@@ -248,7 +294,6 @@ export async function queryKline(input: {
   endTime?: number;
   limit?: number;
 }): Promise<Kline[]> {
-  console.log("[queryKline] input", input);
   const uri = import.meta.env.VITE_GRAPHQL_HTTP ?? "/query";
   const res = await fetch(uri, {
     method: "POST",
@@ -271,4 +316,96 @@ export async function queryKline(input: {
     .join("; ");
   if (errMsg) throw new Error(errMsg);
   return json.data?.Result ?? [];
+}
+
+const QUERY_ORDERS = `
+  query QueryOrders($input: QueryOrdersInput!) {
+    Result: Orders(input: $input) {
+      list {
+        accountId
+        botId
+        exchange
+        symbol
+        clientOrderId
+        orderId
+        drivedOrderId
+        side
+        isBuy
+        orderType
+        algoType
+        source
+        price
+        originalQty
+        executedQty
+        originalQuoteQty
+        executedQuoteQty
+        avgPrice
+        priceWorkingType
+        priceMode
+        status
+        timeInForce
+        reduceOnly
+        closePosition
+        postOnly
+        priceProtect
+        conditions {
+          triggerType
+          orderPrice
+          callbackDistance
+          callbackRate
+          activationPrice
+          priceWorkingType
+          priceMode
+          isTrailing
+          activated
+          activatedTs
+        }
+        isWorking
+        workingTs
+        rejectReason
+        createdTs
+        updatedTs
+        finishedTs
+        locked
+        lockedAsset
+        fee
+        feeAsset
+        realizedPnl
+        pnlAsset
+      }
+      totalCount
+    }
+  }
+`;
+
+export async function getOrders(input: Record<string, any>) {
+  const requestInput = {
+    page: 1,
+    size: 50,
+    ...input,
+  };
+  const uri = import.meta.env.VITE_GRAPHQL_HTTP ?? "/query";
+  const res = await fetch(uri, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${import.meta.env.VITE_GRAPHQL_AUTH_TOKEN}` },
+    body: JSON.stringify({
+      query: QUERY_ORDERS,
+      variables: {
+        input: requestInput,
+      },
+    }),
+  });
+  if (!res.ok) {
+    throw new Error(`GraphQL HTTP ${res.status}`);
+  }
+  const json = (await res.json()) as {
+    data?: { Result?: OrdersConnection };
+    errors?: { message?: string }[];
+  };
+  const errMsg = json.errors
+    ?.map((e) => e.message)
+    .filter(Boolean)
+    .join("; ");
+  if (errMsg) throw new Error(errMsg);
+  return json.data?.Result ?? { list: [], totalCount: 0 };
 }

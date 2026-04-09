@@ -1,13 +1,70 @@
+import type { AlertItem, AlertItemInput, HisOrder } from "@wangliang139/klinecharts-pro";
 import { KLineChartPro } from "@wangliang139/klinecharts-pro";
-import type { AlertItem, AlertItemInput } from "@wangliang139/klinecharts-pro";
 
+import type { Order } from "./api";
 import { createApiDatafeed } from "./apiDatafeed";
 import { createApolloClient } from "./apollo";
 
 import "./main.css";
 
 const apolloClient = createApolloClient();
-const datafeed = createApiDatafeed(apolloClient);
+let chart: KLineChartPro;
+let hisOrdersState: HisOrder[] = [];
+
+function orderMergeKey(order: HisOrder): string {
+  const id = String(order.id ?? "").trim();
+  if (id) return `id:${id}`;
+  const oid = String(order.orderId ?? "").trim();
+  if (oid) return `oid:${oid}`;
+  return `fallback:${order.timestamp}|${order.isBuy ? "B" : "S"}|${order.price}|${order.size}`;
+}
+
+function mergeHisOrders(existing: HisOrder[], incoming: HisOrder[]): HisOrder[] {
+  const merged = new Map<string, HisOrder>();
+  for (const item of existing) {
+    merged.set(orderMergeKey(item), item);
+  }
+  for (const item of incoming) {
+    merged.set(orderMergeKey(item), item);
+  }
+  return Array.from(merged.values()).sort((a, b) => b.timestamp - a.timestamp);
+}
+
+function mapOrdersToHisOrders(orders: Order[]): HisOrder[] {
+  const result: HisOrder[] = [];
+  for (const o of orders) {
+    const timestamp = Number(o.finishedTs || o.updatedTs || o.createdTs);
+    const price = Number(o.avgPrice || o.price);
+    const size = Number(o.executedQty || o.originalQty);
+    const side: HisOrder["side"] = o.side === "short" ? "short" : "long";
+    if (!Number.isFinite(timestamp) || timestamp <= 0) continue;
+    if (!Number.isFinite(price) || price <= 0) continue;
+    if (!Number.isFinite(size) || size <= 0) continue;
+    result.push({
+      id: o.clientOrderId || o.orderId,
+      orderId: o.orderId,
+      symbol: o.symbol,
+      side,
+      isBuy: !!o.isBuy,
+      timestamp,
+      price,
+      size,
+      fee: Number.isFinite(Number(o.fee)) ? Number(o.fee) : undefined,
+      pnl: Number.isFinite(Number(o.realizedPnl)) ? Number(o.realizedPnl) : undefined,
+    });
+  }
+  return result;
+}
+
+const datafeed = createApiDatafeed(apolloClient, {
+  accountId: "2027981616834920448",
+  onHisOrdersLoaded: (orders) => {
+    const hisOrders = mapOrdersToHisOrders(orders);
+    hisOrdersState = mergeHisOrders(hisOrdersState, hisOrders);
+    console.log("[dev] onHisOrdersLoaded", { incoming: hisOrders.length, total: hisOrdersState.length });
+    chart?.setHisOrders(hisOrdersState);
+  },
+});
 
 const root = document.getElementById("app");
 if (!root) {
@@ -56,7 +113,7 @@ const normalizeAlert = (input: AlertItemInput): AlertItem => {
   };
 };
 
-const chart = new KLineChartPro({
+chart = new KLineChartPro({
   container: "chart",
   symbol: {
     ticker: "BTC/USDT:FUTURE",
@@ -105,8 +162,6 @@ chart.setStyles({
 });
 
 setTimeout(() => {
-  console.log("style:", chart.getInstanceApi()?.getStyles());
-  console.log("overlay:", chart.getInstanceApi()?.getOverlays());
   const api = chart.getInstanceApi();
   const list = api?.getDataList() ?? [];
   const last = list.at(-1);
@@ -120,42 +175,6 @@ setTimeout(() => {
     { side: "long", isBuy: true, price: close - 200, size: 10 },
     { side: "short", isBuy: false, price: close + 200, size: 10 },
     { side: "short", isBuy: false, size: 10 , orderType: "market"},
-  ]);
-  const rightBar = list.at(Math.max(0, list.length - 3));
-  chart.setHisOrders([
-    {
-      id: "his-buy-1",
-      orderId: "10001",
-      isBuy: true,
-      side: "long",
-      timestamp: Date.now(),
-      price: close - 120,
-      size: 4,
-      fee: 1.5,
-      pnl: 36.2,
-    },
-    {
-      id: "his-buy-2",
-      orderId: "10002",
-      isBuy: true,
-      side: "long",
-      timestamp: Date.now(),
-      price: close - 120,
-      size: 4,
-      fee: 1.5,
-      pnl: 36.2,
-    },
-    {
-      id: "his-sell-1",
-      orderId: "10002",
-      isBuy: false,
-      side: "short",
-      timestamp: rightBar?.timestamp ?? Date.now(),
-      price: close + 140,
-      size: 3,
-      fee: 1.2,
-      pnl: -12.8,
-    },
   ]);
   chart.setAlerts(alertState);
 }, 1000);

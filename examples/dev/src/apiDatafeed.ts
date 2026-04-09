@@ -8,7 +8,7 @@ import type {
   SymbolInfo,
 } from '@wangliang139/klinecharts-pro'
 
-import { SUB_STREAM, queryKline, type Kline } from './api'
+import { Order, SUB_STREAM, getOrders, queryKline, type Kline } from './api'
 
 /** 空闲检测间隔：超过此时间未收到数据会触发重连 */
 const IDLE_RECONNECT_MS = 50_000
@@ -26,6 +26,13 @@ type ApolloSubClient = {
       error: (e: unknown) => void
     }): SubscriptionHandle
   }
+}
+
+type ApiDatafeedOptions = {
+  accountId?: string
+  onHisOrdersLoaded?: (orders: Order[]) => void
+  hisOrdersPageSize?: number
+  hisOrdersMaxPages?: number
 }
 
 function klinesToKLineData(klines: Kline[]): KLineData[] {
@@ -140,15 +147,19 @@ function shouldSkipKlineByInterval(
 /**
  * 使用 `queryKline` 拉历史 K 线、`SUB_STREAM` 推送更新；需配合 `createApolloClient()`。
  */
-export function createApiDatafeed(apolloClient: ApolloClient): Datafeed {
+export function createApiDatafeed(apolloClient: ApolloClient, options: ApiDatafeedOptions = {}): Datafeed {
   const client = apolloClient as unknown as ApolloSubClient
-
+  const accountId = options.accountId
+  const hisOrdersPageSize = Math.max(1, Math.min(options.hisOrdersPageSize ?? 200, 500))
+  const hisOrdersMaxPages = Math.max(1, options.hisOrdersMaxPages ?? 10)
+  
   let sub: SubscriptionHandle | null = null
   let reconnectTimer: ReturnType<typeof setTimeout> | null = null
   let lastReceiveTime = 0
   let currentCallback: DatafeedSubscribeCallback | null = null
   let isReconnecting = false
   let errorRetryCount = 0
+  let hisOrdersRequestSeq = 0
   /** Token 等认证被拒后不再自动重连/空闲重连，直至用户再次 subscribe */
   let fatalAuthError = false
 
@@ -156,6 +167,38 @@ export function createApiDatafeed(apolloClient: ApolloClient): Datafeed {
     exchange: '',
     symbol: '',
     period: '1m',
+  }
+
+  const loadHisOrders = async (symbol: string, from: number, to: number) => {
+    if (!accountId || !symbol) return
+    const requestId = ++hisOrdersRequestSeq
+    const rangeFrom = Math.floor(Number(from))
+    const rangeTo = Math.floor(Number(to))
+    if (!Number.isFinite(rangeFrom) || !Number.isFinite(rangeTo) || rangeFrom >= rangeTo) return
+    try {
+      const merged: Order[] = []
+      for (let page = 1; page <= hisOrdersMaxPages; page++) {
+        const conn = await getOrders({
+          accountId,
+          symbol,
+          includeFinished: true,
+          finishedStartTsMs: rangeFrom,
+          finishedEndTsMs: rangeTo,
+          page,
+          size: hisOrdersPageSize,
+        })
+        // 避免慢请求覆盖新周期/新品种的结果
+        if (requestId !== hisOrdersRequestSeq) return
+        const batch = conn?.list ?? []
+        merged.push(...batch)
+        const total = Number(conn?.totalCount) || 0
+        if (merged.length >= total || batch.length < hisOrdersPageSize) break
+      }
+      if (requestId !== hisOrdersRequestSeq) return
+      options.onHisOrdersLoaded?.(merged)
+    } catch (err) {
+      console.warn('[ApiDatafeed] 加载历史订单失败', err)
+    }
   }
 
   const doSubscribe = () => {
@@ -309,6 +352,7 @@ export function createApiDatafeed(apolloClient: ApolloClient): Datafeed {
       const sym = symbol.ticker
       if (!exchange || !sym) return []
       const interval = period.text || '1m'
+      void loadHisOrders(sym, from, to)
 
       try {
         const history = await queryKline({
