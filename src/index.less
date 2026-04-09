@@ -36,6 +36,16 @@
   background-color: var(--klinecharts-pro-background-color);
   font-size: 14px;
   height: 80vh;
+
+  // Global scrollbar track should stay transparent in pro scope.
+  * {
+    scrollbar-color: var(--klinecharts-pro-border-color) transparent;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
   &[data-pro-pane-background-type="gradient"] {
     height: @widget-height;
   }

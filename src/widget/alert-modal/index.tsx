@@ -28,7 +28,6 @@ const AlertModal: Component<AlertModalProps> = (props) => {
     <Modal
       title="预警"
       width={480}
-      height={420}
       onClose={props.onClose}
     >
       <div class="klinecharts-pro-alert-modal">
@@ -57,6 +56,8 @@ const AlertModal: Component<AlertModalProps> = (props) => {
           <Show when={props.alerts.length === 0}>
             <div class="alert-empty">暂无预警</div>
           </Show>
+        </div>
+        <div class="alert-add-btn-container">
           <button
             type="button"
             class="alert-add-btn"
