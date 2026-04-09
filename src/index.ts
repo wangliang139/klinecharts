@@ -47,7 +47,6 @@ import './index.less'
 
 console.log(`[@wangliang139/klinecharts-pro] v${__KLINECHARTS_PRO_VERSION__}`)
 
-console.log("overlays:", overlays);
 overlays.forEach(o => { registerOverlay(o) })
 
 export {
