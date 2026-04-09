@@ -7,6 +7,8 @@ export interface HisOrderHoverProps {
   formattedTime: string;
   anchorX?: number | null;
   anchorY?: number | null;
+  /** 若传入，浮层限制在该元素可视矩形内（与 position:fixed 一致，使用 getBoundingClientRect） */
+  clipElement?: HTMLElement | null;
 }
 
 const rowStyle = { display: "flex", "justify-content": "space-between", gap: "8px" } as const;
@@ -20,14 +22,19 @@ const HisOrderHover: Component<HisOrderHoverProps> = (props) => {
   const offset = 12;
   const viewportW = typeof window !== "undefined" ? window.innerWidth : 1024;
   const viewportH = typeof window !== "undefined" ? window.innerHeight : 768;
+  const clip = props.clipElement?.getBoundingClientRect();
+  const boxLeft = clip?.left ?? 0;
+  const boxTop = clip?.top ?? 0;
+  const boxRight = clip?.right ?? viewportW;
+  const boxBottom = clip?.bottom ?? viewportH;
   const hasAnchor = typeof props.anchorX === "number" && typeof props.anchorY === "number";
-  const anchorX = hasAnchor ? (props.anchorX as number) : viewportW - panelWidth - 16;
-  const anchorY = hasAnchor ? (props.anchorY as number) : 84;
+  const anchorX = hasAnchor ? (props.anchorX as number) : boxRight - panelWidth - 16;
+  const anchorY = hasAnchor ? (props.anchorY as number) : boxTop + 84;
 
-  const rightSpace = viewportW - anchorX - margin;
-  const leftSpace = anchorX - margin;
-  const bottomSpace = viewportH - anchorY - margin;
-  const topSpace = anchorY - margin;
+  const rightSpace = boxRight - anchorX - margin;
+  const leftSpace = anchorX - boxLeft - margin;
+  const bottomSpace = boxBottom - anchorY - margin;
+  const topSpace = anchorY - boxTop - margin;
 
   const placeRight = rightSpace >= panelWidth + offset || rightSpace >= leftSpace;
   const placeBottom = bottomSpace >= panelHeight + offset || bottomSpace >= topSpace;
@@ -35,8 +42,12 @@ const HisOrderHover: Component<HisOrderHoverProps> = (props) => {
   const rawLeft = placeRight ? anchorX + offset : anchorX - panelWidth - offset;
   const rawTop = placeBottom ? anchorY + offset : anchorY - panelHeight - offset;
 
-  const left = Math.min(Math.max(margin, rawLeft), viewportW - panelWidth - margin);
-  const top = Math.min(Math.max(margin, rawTop), viewportH - panelHeight - margin);
+  const minL = boxLeft + margin;
+  const maxL = boxRight - panelWidth - margin;
+  const minT = boxTop + margin;
+  const maxT = boxBottom - panelHeight - margin;
+  const left = Math.min(Math.max(minL, rawLeft), Math.max(minL, maxL));
+  const top = Math.min(Math.max(minT, rawTop), Math.max(minT, maxT));
   return (
     <div class={`klinecharts-pro-his-order-hover ${isBuy() ? "is-buy" : "is-sell"}`} style={{ left: `${left}px`, top: `${top}px` }}>
       <div class={`klinecharts-pro-his-order-hover-title ${isBuy() ? "is-buy" : "is-sell"}`}>

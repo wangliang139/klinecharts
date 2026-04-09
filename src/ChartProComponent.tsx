@@ -697,6 +697,11 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
           formattedTime={formatTimeByTz(hisOrderHoverData()!.timestamp, props.locale, timezone().key)}
           anchorX={hisOrderHoverAnchor().x}
           anchorY={hisOrderHoverAnchor().y}
+          clipElement={
+            (widgetRef as HTMLDivElement | undefined)?.closest('.klinecharts-pro') as
+              | HTMLElement
+              | null
+          }
         />
       </Show>
       <PeriodBar
