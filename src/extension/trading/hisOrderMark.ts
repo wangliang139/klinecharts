@@ -12,6 +12,8 @@ const SELL_COLOR = "#f6465d";
 const MARK_RADIUS = 6;
 const MARK_OFFSET = 14;
 const STACK_GAP = 14;
+/** K 线在屏幕上过“矮”时额外垫开标记与影线/实体的距离（含最新根与历史根） */
+const LATEST_BAR_MIN_PIXEL_SPAN = 18;
 
 const overlayAnchorMap = new Map<string, { x: number; y: number }>();
 type HisOrderOverlayExtend = HisOrder & {
@@ -52,10 +54,23 @@ const historicalOrderMark = (): OverlayTemplate => ({
     if (!point || !ext || !Number.isFinite(point.timestamp) || typeof ext.isBuy !== "boolean") {
       return [];
     }
-    const highValue =
-      typeof ext.barHigh === "number" && Number.isFinite(ext.barHigh) ? ext.barHigh : undefined;
-    const lowValue =
-      typeof ext.barLow === "number" && Number.isFinite(ext.barLow) ? ext.barLow : undefined;
+    const dataList = chart.getDataList();
+    const barFromData = dataList.find((d) => d.timestamp === point.timestamp);
+    let highValue: number | undefined;
+    let lowValue: number | undefined;
+    if (
+      barFromData &&
+      Number.isFinite(barFromData.high) &&
+      Number.isFinite(barFromData.low)
+    ) {
+      highValue = barFromData.high;
+      lowValue = barFromData.low;
+    } else {
+      highValue =
+        typeof ext.barHigh === "number" && Number.isFinite(ext.barHigh) ? ext.barHigh : undefined;
+      lowValue =
+        typeof ext.barLow === "number" && Number.isFinite(ext.barLow) ? ext.barLow : undefined;
+    }
     if (highValue === undefined || lowValue === undefined) {
       return [];
     }
@@ -69,9 +84,16 @@ const historicalOrderMark = (): OverlayTemplate => ({
       (chart.convertToPixel({ timestamp: point.timestamp, value: lowValue }) as Partial<Coordinate>).y ??
       coordinates[0].y;
     const stackIndex = Math.max(0, ext.stackIndex ?? 0);
+    const barPixelSpan = Math.abs(lowY - highY);
+    /** 任意 K 线在屏幕上过矮时都加垫距（含「刚不再是 lastBar」的前一根），避免与实体重叠 */
+    const shortBarExtra =
+      Number.isFinite(barPixelSpan) && barPixelSpan < LATEST_BAR_MIN_PIXEL_SPAN
+        ? Math.max(0, LATEST_BAR_MIN_PIXEL_SPAN - barPixelSpan) * 0.65
+        : 0;
+    const markOffset = MARK_OFFSET + shortBarExtra;
     const y = ext.isBuy
-      ? lowY + MARK_OFFSET + stackIndex * STACK_GAP
-      : highY - MARK_OFFSET - stackIndex * STACK_GAP;
+      ? lowY + markOffset + stackIndex * STACK_GAP
+      : highY - markOffset - stackIndex * STACK_GAP;
     if (overlay.id) {
       const paneDom = chart.getDom("candle_pane", "main");
       if (paneDom) {
