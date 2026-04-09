@@ -45,14 +45,14 @@ import {
   SymbolSearchModal,
   TimezoneModal
 } from './widget'
-import WarningModal from './widget/warning-modal'
-import { WarningDetailFields } from './widget/warning-modal/warning-detail-fields'
+import AlertModal from './widget/alert-modal'
+import { AlertDetailFields } from './widget/alert-modal/alert-detail-fields'
 
 import { translateTimezone } from './widget/timezone-modal/data'
 
 import Chart from './Chart'
-import { HIS_ORDER_HOVER_EVENT, WARNING_DETAIL_OPEN_EVENT } from './extension/trading/constants'
-import { setPriceWarningOverlayHandlers } from './extension/trading/priceWarningLine'
+import { ALERT_DETAIL_OPEN_EVENT, HIS_ORDER_HOVER_EVENT } from './extension/trading/constants'
+import { setPriceAlertOverlayHandlers } from './extension/trading/priceAlertLine'
 import { formatTimeByTz } from './helpers'
 import {
   createChartIndicatorHandlers,
@@ -75,7 +75,7 @@ import {
   setPositionsData,
   syncTradingOverlays
 } from './store/tradingStore'
-import { HisOrder, PendingOrder, Period, Position, SymbolInfo, WarningItem, WarningType } from './types/types'
+import { AlertItem, AlertType, HisOrder, PendingOrder, Period, Position, SymbolInfo } from './types/types'
 const { createIndicator, pushOverlay, restoreChartState } = useChartState()
 
 interface PrevSymbolPeriod {
@@ -84,8 +84,8 @@ interface PrevSymbolPeriod {
 }
 const TRADING_RESYNC_DELAYS = [0, 120, 360, 900] as const
 const HIS_ORDER_HOVER_HIDE_DELAY = 120
-const WARNING_OVERLAY_GROUP = 'warning_overlays'
-const WARNING_PRICE_TYPES: WarningType[] = ['price_reach', 'price_rise_to', 'price_fall_to']
+const ALERT_OVERLAY_GROUP = 'alert_overlays'
+const ALERT_PRICE_TYPES: AlertType[] = ['price_reach', 'price_rise_to', 'price_fall_to']
 
 function buildTooltipFeatureStyles(color: string) {
   return {
@@ -206,14 +206,14 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
   const [timezone, setTimezone] = createSignal<SelectDataSourceItem>({ key: props.timezone, text: translateTimezone(props.timezone, props.locale) })
 
   const [settingModalVisible, setSettingModalVisible] = createSignal(false)
-  const [warningModalVisible, setWarningModalVisible] = createSignal(false)
+  const [alertModalVisible, setAlertModalVisible] = createSignal(false)
   const [widgetDefaultStyles, setWidgetDefaultStyles] = createSignal<Styles>()
 
   const [screenshotUrl, setScreenshotUrl] = createSignal('')
 
   const [drawingBarVisible, setDrawingBarVisible] = createSignal(props.drawingBarVisible)
-  const [warnings, setWarnings] = createSignal<WarningItem[]>([...(props.warnings ?? [])])
-  const [chartWarningDetail, setChartWarningDetail] = createSignal<WarningItem | null>(null)
+  const [alerts, setAlerts] = createSignal<AlertItem[]>([...(props.alerts ?? [])])
+  const [chartAlertDetail, setChartAlertDetail] = createSignal<AlertItem | null>(null)
 
   const [symbolSearchModalVisible, setSymbolSearchModalVisible] = createSignal(false)
   const [hisOrderHoverVisible, setHisOrderHoverVisible] = createSignal(false)
@@ -228,32 +228,32 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
   const [indicatorSettingModalParams, setIndicatorSettingModalParams] = createSignal<IndicatorSettingParams>(DEFAULT_INDICATOR_SETTING_PARAMS)
   const safeOverlaySegment = (key: string) => key.replace(/[^a-zA-Z0-9_-]/g, '_')
 
-  const syncWarningOverlays = () => {
+  const syncAlertOverlays = () => {
     const api = instanceApi()
     const currentSymbol = symbol()
     if (!api || !currentSymbol) return
     const lastTs = api.getDataList().at(-1)?.timestamp ?? Date.now()
-    const currentWarnings = warnings()
-    const priceWarnings = currentWarnings.filter((warning) => {
-      if (!WARNING_PRICE_TYPES.includes(warning.type)) return false
-      if (!Number.isFinite(warning.price)) return false
-      if (warning.symbol && warning.symbol !== currentSymbol.ticker) return false
+    const currentAlerts = alerts()
+    const priceAlerts = currentAlerts.filter((alertItem) => {
+      if (!ALERT_PRICE_TYPES.includes(alertItem.type)) return false
+      if (!Number.isFinite(alertItem.price)) return false
+      if (alertItem.symbol && alertItem.symbol !== currentSymbol.ticker) return false
       return true
     })
     const aliveIds = new Set<string>()
-    priceWarnings.forEach((warning, index) => {
-      const idSuffix = safeOverlaySegment(warning.id || `idx_${index}`)
-      const id = `warning-${idSuffix}`
+    priceAlerts.forEach((alertItem, index) => {
+      const idSuffix = safeOverlaySegment(alertItem.id || `idx_${index}`)
+      const id = `alert-${idSuffix}`
       aliveIds.add(id)
       const existing = (api.getOverlays({ id }) ?? []).length > 0
       const payload = {
         id,
-        name: 'priceWarningLine',
-        groupId: WARNING_OVERLAY_GROUP,
+        name: 'priceAlertLine',
+        groupId: ALERT_OVERLAY_GROUP,
         paneId: 'candle_pane' as const,
         mode: 'normal' as const,
-        points: [{ timestamp: lastTs, value: warning.price! }],
-        extendData: { warning, showInfo: false },
+        points: [{ timestamp: lastTs, value: alertItem.price! }],
+        extendData: { alert: alertItem, showInfo: false },
       }
       if (!existing) {
         api.createOverlay(payload)
@@ -265,7 +265,7 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
         })
       }
     })
-    const existing = api.getOverlays({ groupId: WARNING_OVERLAY_GROUP }) ?? []
+    const existing = api.getOverlays({ groupId: ALERT_OVERLAY_GROUP }) ?? []
     existing.forEach((item) => {
       if (item.id && !aliveIds.has(item.id)) {
         api.removeOverlay({ id: item.id })
@@ -273,13 +273,13 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
     })
   }
 
-  const handleRemoveWarning = async (warning: WarningItem) => {
-    await props.onRemoveWarning?.(warning)
+  const handleRemoveAlert = async (alertItem: AlertItem) => {
+    await props.onRemoveAlert?.(alertItem)
   }
 
-  setPriceWarningOverlayHandlers({
-    onRemove: (warning) => {
-      void handleRemoveWarning(warning)
+  setPriceAlertOverlayHandlers({
+    onRemove: (alertItem) => {
+      void handleRemoveAlert(alertItem)
     },
   })
 
@@ -311,10 +311,10 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
     createIndicator
   })
 
-  const onWarningDetailOpen = (e: Event) => {
-    const d = (e as CustomEvent<{ warning: WarningItem }>).detail
-    if (d?.warning) {
-      setChartWarningDetail(d.warning)
+  const onAlertDetailOpen = (e: Event) => {
+    const d = (e as CustomEvent<{ alert: AlertItem }>).detail
+    if (d?.alert) {
+      setChartAlertDetail(d.alert)
     }
   }
 
@@ -328,7 +328,7 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
       resizeRafId = null
     }
     window.removeEventListener(HIS_ORDER_HOVER_EVENT, hoverController.onEvent as EventListener)
-    window.removeEventListener(WARNING_DETAIL_OPEN_EVENT, onWarningDetailOpen)
+    window.removeEventListener(ALERT_DETAIL_OPEN_EVENT, onAlertDetailOpen)
     window.removeEventListener('resize', documentResize)
     if (widgetRef) {
       dispose(widgetRef)
@@ -355,9 +355,9 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
     setLiqPrice: (price: number | null) => { setLiquidationPriceData(price, instanceApi()) },
     setOpenOrders: (list: PendingOrder[]) => { setOpenOrdersData(list, instanceApi()) },
     setHisOrders: (list: HisOrder[]) => { setHisOrdersData(list, instanceApi()) },
-    setWarnings: (list: WarningItem[]) => {
-      setWarnings([...list])
-      syncWarningOverlays()
+    setAlerts: (list: AlertItem[]) => {
+      setAlerts([...list])
+      syncAlertOverlays()
     },
   }
 
@@ -378,7 +378,7 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
 
   onMount(() => {
     window.addEventListener(HIS_ORDER_HOVER_EVENT, hoverController.onEvent as EventListener)
-    window.addEventListener(WARNING_DETAIL_OPEN_EVENT, onWarningDetailOpen)
+    window.addEventListener(ALERT_DETAIL_OPEN_EVENT, onAlertDetailOpen)
     window.addEventListener('resize', documentResize)
     setInstanceApi(Chart.init(widgetRef!, {
       formatter: {
@@ -462,7 +462,7 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
       bindTradingStore(instanceApi()!)
       loadTradingConfigFromStorage(instanceApi())
       syncTradingOverlays(instanceApi())
-      syncWarningOverlays()
+      syncAlertOverlays()
 
       const s = symbol()
       if (s?.priceCurrency) {
@@ -545,7 +545,7 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
         api?.resize()
       }
     }
-    syncWarningOverlays()
+    syncAlertOverlays()
 
     return { symbol: s, period: p }
   })
@@ -586,14 +586,14 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
   })
 
   createEffect(() => {
-    warnings()
-    syncWarningOverlays()
+    alerts()
+    syncAlertOverlays()
   })
 
   createEffect(() => {
     const chartContainer = widgetRef as HTMLDivElement | undefined
     if (!chartContainer) return
-    if (!settingModalVisible() && !warningModalVisible() && !chartWarningDetail()) return
+    if (!settingModalVisible() && !alertModalVisible() && !chartAlertDetail()) return
 
     const lockChartScroll = (event: Event) => {
       event.preventDefault()
@@ -636,24 +636,24 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
           onConfirm={setTimezone}
         />
       </Show>
-      <Show when={warningModalVisible()}>
-        <WarningModal
-          warnings={warnings()}
-          onClose={() => { setWarningModalVisible(false) }}
-          onAddWarning={props.onAddWarning}
-          onRemoveWarning={handleRemoveWarning}
+      <Show when={alertModalVisible()}>
+        <AlertModal
+          alerts={alerts()}
+          onClose={() => { setAlertModalVisible(false) }}
+          onAddAlert={props.onAddAlert}
+          onRemoveAlert={handleRemoveAlert}
         />
       </Show>
-      <Show when={chartWarningDetail()}>
+      <Show when={chartAlertDetail()}>
         {(w) => (
           <Modal
             title="预警详情"
             width={400}
             height={260}
-            onClose={() => { setChartWarningDetail(null) }}
+            onClose={() => { setChartAlertDetail(null) }}
           >
-            <div class="klinecharts-pro-warning-detail">
-              <WarningDetailFields warning={w()} />
+            <div class="klinecharts-pro-alert-detail">
+              <AlertDetailFields alert={w()} />
             </div>
           </Modal>
         )}
@@ -715,7 +715,7 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
         onPeriodChange={setPeriod}
         onIndicatorClick={() => { setIndicatorModalVisible((visible => !visible)) }}
         onTimezoneClick={() => { setTimezoneModalVisible((visible => !visible)) }}
-        onWarningClick={() => { setWarningModalVisible(true) }}
+        onAlertClick={() => { setAlertModalVisible(true) }}
         onSettingClick={() => { setSettingModalVisible((visible => !visible)) }}
         onScreenshotClick={() => {
           if (instanceApi()) {

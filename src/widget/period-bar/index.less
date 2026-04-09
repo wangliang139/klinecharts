@@ -117,9 +117,8 @@
     justify-content: center;
     flex-shrink: 0;
     height: 100%;
-    padding: 0 12px;
+    padding: 0 10px;
     border-right: solid 1px var(--klinecharts-pro-border-color);
-    white-space: nowrap;
     &:hover {
       fill: var(--klinecharts-pro-primary-color);
       color: var(--klinecharts-pro-primary-color);
@@ -127,7 +126,6 @@
     svg {
       width: 16px;
       height: 16px;
-      margin-right: 4px;
     }
   }
 
@@ -253,7 +251,7 @@
     border-radius: 50%;
   }
 
-  // 窄屏：仅图标以缩短横向滚动距离
+  // 窄屏：略收紧周期栏
   @media (max-width: 560px) {
     .symbol {
       font-size: 15px;
@@ -261,12 +259,6 @@
     }
     .tools:not(.period) {
       padding: 0 8px;
-      span {
-        display: none;
-      }
-      svg {
-        margin-right: 0;
-      }
     }
   }
 }

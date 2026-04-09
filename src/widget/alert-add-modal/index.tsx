@@ -1,23 +1,23 @@
 import { Component, createMemo, createSignal, Show } from 'solid-js'
 
 import { Modal, Select, SelectDataSourceItem } from '../../component'
-import { WarningFrequency, WarningItemInput, WarningType, WarningWindow } from '../../types/types'
+import { AlertFrequency, AlertItemInput, AlertType, AlertWindow } from '../../types/types'
 
-export interface WarningAddModalProps {
+export interface AlertAddModalProps {
   onClose: () => void
-  onSubmit: (payload: WarningItemInput) => void | Promise<void>
+  onSubmit: (payload: AlertItemInput) => void | Promise<void>
 }
 
 type FormState = {
-  type: WarningType
-  frequency: WarningFrequency
+  type: AlertType
+  frequency: AlertFrequency
   price: string
-  window: WarningWindow
+  window: AlertWindow
   percent: string
   remark: string
 }
 
-const TYPE_OPTIONS: Array<SelectDataSourceItem & { key: WarningType }> = [
+const TYPE_OPTIONS: Array<SelectDataSourceItem & { key: AlertType }> = [
   { key: 'price_reach', text: '价格达到' },
   { key: 'price_rise_to', text: '价格上涨至' },
   { key: 'price_fall_to', text: '价格下跌至' },
@@ -25,19 +25,19 @@ const TYPE_OPTIONS: Array<SelectDataSourceItem & { key: WarningType }> = [
   { key: 'price_fall_pct_over', text: '价格跌幅超过' },
 ]
 
-const FREQUENCY_OPTIONS: Array<SelectDataSourceItem & { key: WarningFrequency }> = [
+const FREQUENCY_OPTIONS: Array<SelectDataSourceItem & { key: AlertFrequency }> = [
   { key: 'repeat', text: '重复提醒' },
   { key: 'once', text: '仅提醒一次' },
 ]
 
-const WINDOW_OPTIONS: Array<SelectDataSourceItem & { key: WarningWindow }> = [
+const WINDOW_OPTIONS: Array<SelectDataSourceItem & { key: AlertWindow }> = [
   { key: '5m', text: '5分' },
   { key: '1h', text: '1小时' },
   { key: '4h', text: '4小时' },
   { key: '24h', text: '24小时' },
 ]
 
-const WarningAddModal: Component<WarningAddModalProps> = (props) => {
+const AlertAddModal: Component<AlertAddModalProps> = (props) => {
   const [submitting, setSubmitting] = createSignal(false)
   const [error, setError] = createSignal('')
   const [form, setForm] = createSignal<FormState>({
@@ -57,7 +57,7 @@ const WarningAddModal: Component<WarningAddModalProps> = (props) => {
   const submit = async () => {
     if (submitting()) return
     const value = form()
-    const payload: WarningItemInput = {
+    const payload: AlertItemInput = {
       type: value.type,
       frequency: value.frequency,
       remark: value.remark.trim() || undefined,
@@ -98,7 +98,7 @@ const WarningAddModal: Component<WarningAddModalProps> = (props) => {
       ]}
       onClose={props.onClose}
     >
-      <div class="klinecharts-pro-warning-add-modal">
+      <div class="klinecharts-pro-alert-add-modal">
         <div class="row">
           <span>类型</span>
           <Select
@@ -106,7 +106,7 @@ const WarningAddModal: Component<WarningAddModalProps> = (props) => {
             value={TYPE_OPTIONS.find(item => item.key === form().type)?.text}
             dataSource={TYPE_OPTIONS}
             onSelected={item => {
-              const next = (item as SelectDataSourceItem).key as WarningType
+              const next = (item as SelectDataSourceItem).key as AlertType
               setForm(prev => ({ ...prev, type: next }))
             }}
           />
@@ -135,7 +135,7 @@ const WarningAddModal: Component<WarningAddModalProps> = (props) => {
                 value={WINDOW_OPTIONS.find(item => item.key === form().window)?.text}
                 dataSource={WINDOW_OPTIONS}
                 onSelected={item => {
-                  const next = (item as SelectDataSourceItem).key as WarningWindow
+                  const next = (item as SelectDataSourceItem).key as AlertWindow
                   setForm(prev => ({ ...prev, window: next }))
                 }}
               />
@@ -163,7 +163,7 @@ const WarningAddModal: Component<WarningAddModalProps> = (props) => {
             value={FREQUENCY_OPTIONS.find(item => item.key === form().frequency)?.text}
             dataSource={FREQUENCY_OPTIONS}
             onSelected={item => {
-              const next = (item as SelectDataSourceItem).key as WarningFrequency
+              const next = (item as SelectDataSourceItem).key as AlertFrequency
               setForm(prev => ({ ...prev, frequency: next }))
             }}
           />
@@ -188,4 +188,4 @@ const WarningAddModal: Component<WarningAddModalProps> = (props) => {
   )
 }
 
-export default WarningAddModal
+export default AlertAddModal

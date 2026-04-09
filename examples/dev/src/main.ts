@@ -1,5 +1,5 @@
 import { KLineChartPro } from "@wangliang139/klinecharts-pro";
-import type { WarningItem, WarningItemInput } from "@wangliang139/klinecharts-pro";
+import type { AlertItem, AlertItemInput } from "@wangliang139/klinecharts-pro";
 
 import { createApiDatafeed } from "./apiDatafeed";
 import { createApolloClient } from "./apollo";
@@ -27,10 +27,10 @@ const lockPageScrollWhenInteractingChart = (event: Event) => {
 chartContainer.addEventListener("wheel", lockPageScrollWhenInteractingChart, { passive: false });
 chartContainer.addEventListener("touchmove", lockPageScrollWhenInteractingChart, { passive: false });
 
-let warningSeq = 3;
-let warningState: WarningItem[] = [
+let alertSeq = 3;
+let alertState: AlertItem[] = [
   {
-    id: "warning-1",
+    id: "alert-1",
     type: "price_reach",
     frequency: "repeat",
     price: 72000,
@@ -38,7 +38,7 @@ let warningState: WarningItem[] = [
     symbol: "BTC/USDT:FUTURE",
   },
   {
-    id: "warning-2",
+    id: "alert-2",
     type: "price_rise_to",
     frequency: "once",
     price: 66000,
@@ -47,8 +47,8 @@ let warningState: WarningItem[] = [
   },
 ];
 
-const normalizeWarning = (input: WarningItemInput): WarningItem => {
-  const id = input.id?.trim() || `warning-${warningSeq++}`;
+const normalizeAlert = (input: AlertItemInput): AlertItem => {
+  const id = input.id?.trim() || `alert-${alertSeq++}`;
   return {
     ...input,
     id,
@@ -82,17 +82,17 @@ const chart = new KLineChartPro({
   theme: "dark",
   locale: "zh-CN",
   drawingBarVisible: false,
-  warnings: warningState,
-  onAddWarning: async (payload) => {
-    const warning = normalizeWarning(payload);
-    warningState = [...warningState, warning];
-    chart.setWarnings(warningState);
-    console.log("[dev] onAddWarning", warning);
+  alerts: alertState,
+  onAddAlert: async (payload) => {
+    const alertItem = normalizeAlert(payload);
+    alertState = [...alertState, alertItem];
+    chart.setAlerts(alertState);
+    console.log("[dev] onAddAlert", alertItem);
   },
-  onRemoveWarning: async (warning) => {
-    warningState = warningState.filter((item) => item.id !== warning.id);
-    chart.setWarnings(warningState);
-    console.log("[dev] onRemoveWarning", warning);
+  onRemoveAlert: async (alertItem) => {
+    alertState = alertState.filter((item) => item.id !== alertItem.id);
+    chart.setAlerts(alertState);
+    console.log("[dev] onRemoveAlert", alertItem);
   },
 });
 
@@ -157,7 +157,7 @@ setTimeout(() => {
       pnl: -12.8,
     },
   ]);
-  chart.setWarnings(warningState);
+  chart.setAlerts(alertState);
 }, 1000);
 
 setTimeout(() => {

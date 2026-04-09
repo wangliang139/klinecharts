@@ -21,6 +21,7 @@ import ChartProComponent from './ChartProComponent'
 import ChartDataLoader from './DataLoader'
 import { instanceApi, PaneProperties } from './store/chartStore'
 import {
+  AlertItem,
   ChartPro,
   ChartProOptions,
   HisOrder,
@@ -29,7 +30,6 @@ import {
   Position,
   ProChart,
   SymbolInfo,
-  WarningItem,
 } from './types/types'
 
 const Logo = (
@@ -40,7 +40,7 @@ const Logo = (
   </svg>
 )
 
-export default class KLineChartPro implements ChartPro {
+export default class KlineChartPro implements ChartPro {
   constructor(options: ChartProOptions) {
     if (utils.isString(options.container)) {
       this._container = document.getElementById(options.container as string)
@@ -83,9 +83,9 @@ export default class KLineChartPro implements ChartPro {
           mainIndicators={options.mainIndicators ?? ['MA']}
           subIndicators={options.subIndicators ?? ['VOL']}
           dataTimestamp={options.dataTimestamp ?? new Date().getTime()}
-          warnings={options.warnings ?? []}
-          onAddWarning={options.onAddWarning ?? (() => {})}
-          onRemoveWarning={options.onRemoveWarning ?? (() => {})}
+          alerts={options.alerts ?? []}
+          onAddAlert={options.onAddAlert ?? (() => {})}
+          onRemoveAlert={options.onRemoveAlert ?? (() => {})}
           rootElementId={options.rootElementId ?? this._container?.id ?? ''}
           dataloader={dataLoader} />
       ),
@@ -182,7 +182,7 @@ export default class KLineChartPro implements ChartPro {
     this._chartApi?.setHisOrders(orders)
   }
 
-  setWarnings(warnings: WarningItem[]): void {
-    this._chartApi?.setWarnings(warnings)
+  setAlerts(alerts: AlertItem[]): void {
+    this._chartApi?.setAlerts(alerts)
   }
 }

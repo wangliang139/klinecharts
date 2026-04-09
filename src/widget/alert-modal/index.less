@@ -1,6 +1,6 @@
 @import (reference) '../../base.less';
 
-.@{prefix-cls}-warning-modal {
+.@{prefix-cls}-alert-modal {
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -9,7 +9,7 @@
   width: 100%;
   box-sizing: border-box;
 
-  .warning-list {
+  .alert-list {
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -19,7 +19,7 @@
     overscroll-behavior: contain;
   }
 
-  .warning-item {
+  .alert-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -35,12 +35,12 @@
     }
   }
 
-  .warning-text {
+  .alert-text {
     color: var(--klinecharts-pro-text-color);
     font-size: 13px;
   }
 
-  .warning-delete {
+  .alert-delete {
     border: none;
     background: transparent;
     color: #f6465d;
@@ -48,12 +48,12 @@
     font-size: 12px;
   }
 
-  .warning-empty {
+  .alert-empty {
     color: var(--klinecharts-pro-text-second-color);
     font-size: 12px;
   }
 
-  .warning-add-btn {
+  .alert-add-btn {
     margin-top: auto;
     height: 32px;
     border: none;
@@ -64,13 +64,13 @@
   }
 }
 
-.@{prefix-cls}-warning-detail {
+.@{prefix-cls}-alert-detail {
   padding: 4px 0;
   width: 100%;
   padding: 20px;
   box-sizing: border-box;
 
-  .warning-detail-grid {
+  .alert-detail-grid {
     display: grid;
     grid-template-columns: 88px 1fr;
     gap: 10px 12px;
@@ -90,7 +90,7 @@
     word-break: break-word;
   }
 
-  .warning-detail-id {
+  .alert-detail-id {
     font-size: 12px;
     font-family: ui-monospace, monospace;
     color: var(--klinecharts-pro-text-second-color);

@@ -18,11 +18,16 @@ import { registerOverlay } from 'klinecharts'
 import overlays from './extension'
 
 import DefaultDatafeed from './DefaultDatafeed'
-import KLineChartPro from './KLineChartPro'
+import KlineChartPro from './KlineChartPro'
 
 import { load } from './i18n'
 
 import {
+  AlertFrequency,
+  AlertItem,
+  AlertItemInput,
+  AlertType,
+  AlertWindow,
   ChartObjType,
   ChartPro,
   ChartProOptions,
@@ -35,12 +40,7 @@ import {
   PositionSide,
   ProChart,
   SymbolInfo,
-  TradingConfig,
-  WarningFrequency,
-  WarningItem,
-  WarningItemInput,
-  WarningType,
-  WarningWindow
+  TradingConfig
 } from './types/types'
 
 import './index.less'
@@ -52,9 +52,9 @@ overlays.forEach(o => { registerOverlay(o) })
 
 export {
   DefaultDatafeed,
-  KLineChartPro,
+  KlineChartPro as KLineChartPro,
   load as loadLocales
 }
 
-export type { ChartObjType, ChartPro, ChartProOptions, Datafeed, DatafeedSubscribeCallback, HisOrder, PendingOrder, Period, Position, PositionSide, ProChart, SymbolInfo, TradingConfig, WarningFrequency, WarningItem, WarningItemInput, WarningType, WarningWindow }
+export type { AlertFrequency, AlertItem, AlertItemInput, AlertType, AlertWindow, ChartObjType, ChartPro, ChartProOptions, Datafeed, DatafeedSubscribeCallback, HisOrder, PendingOrder, Period, Position, PositionSide, ProChart, SymbolInfo, TradingConfig }
 

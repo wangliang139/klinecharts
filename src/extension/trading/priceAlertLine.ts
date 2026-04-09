@@ -1,72 +1,72 @@
 import { Coordinate, LineStyle, OverlayEvent, OverlayTemplate, utils } from "klinecharts";
 
 import { formatWesternGrouped } from "../../helpers";
-import { WarningItem } from "../../types/types";
-import { WARNING_DETAIL_OPEN_EVENT } from "./constants";
+import { AlertItem } from "../../types/types";
+import { ALERT_DETAIL_OPEN_EVENT } from "./constants";
 import { isPriceInVisibleCandleRange } from "./chartVisibleRange";
 
-const WARNING_COLOR = "#bfbfbf";
+const ALERT_LINE_COLOR = "#bfbfbf";
 
-type WarningExtendData = {
-  warning: WarningItem;
+type AlertExtendData = {
+  alert: AlertItem;
   showInfo?: boolean;
 };
 
-const WARNING_HOVER_LEAVE_MS = 140;
+const ALERT_HOVER_LEAVE_MS = 140;
 
-const warningHoverHideTimers = new Map<string, ReturnType<typeof setTimeout>>();
+const alertHoverHideTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
-function clearWarningHoverHideTimer(overlayId: string) {
-  const t = warningHoverHideTimers.get(overlayId);
+function clearAlertHoverHideTimer(overlayId: string) {
+  const t = alertHoverHideTimers.get(overlayId);
   if (t != null) {
     clearTimeout(t);
-    warningHoverHideTimers.delete(overlayId);
+    alertHoverHideTimers.delete(overlayId);
   }
 }
 
-function scheduleWarningHoverHide(chart: OverlayEvent<unknown>["chart"], overlayId: string) {
-  clearWarningHoverHideTimer(overlayId);
+function scheduleAlertHoverHide(chart: OverlayEvent<unknown>["chart"], overlayId: string) {
+  clearAlertHoverHideTimer(overlayId);
   const t = setTimeout(() => {
-    warningHoverHideTimers.delete(overlayId);
+    alertHoverHideTimers.delete(overlayId);
     const list = chart.getOverlays({ id: overlayId });
     const o = list[0];
     if (!o) return;
-    const ext = o.extendData as WarningExtendData;
+    const ext = o.extendData as AlertExtendData;
     chart.overrideOverlay({
       id: overlayId,
       extendData: { ...ext, showInfo: false },
     });
-  }, WARNING_HOVER_LEAVE_MS);
-  warningHoverHideTimers.set(overlayId, t);
+  }, ALERT_HOVER_LEAVE_MS);
+  alertHoverHideTimers.set(overlayId, t);
 }
 
-function warningHoverFigureKey(key: string | undefined): boolean {
-  return key === "warning-triangle" || key === "warning-info-text" || key === "warning-info-close";
+function alertHoverFigureKey(key: string | undefined): boolean {
+  return key === "alert-triangle" || key === "alert-info-text" || key === "alert-info-close";
 }
 
-let removeHandler: ((warning: WarningItem) => void) | undefined;
+let removeHandler: ((alertItem: AlertItem) => void) | undefined;
 
-export function setPriceWarningOverlayHandlers(handlers: { onRemove?: (warning: WarningItem) => void }) {
+export function setPriceAlertOverlayHandlers(handlers: { onRemove?: (alertItem: AlertItem) => void }) {
   removeHandler = handlers.onRemove;
 }
 
-const warningLineStyle = (): LineStyle => ({
+const alertLineStyle = (): LineStyle => ({
   style: "dashed",
   size: 1,
   color: "rgba(255, 255, 255, 1)",
   dashedValue: [4, 4],
 });
 
-function getWarningText(warning: WarningItem, precision = 2): string {
-  if (warning.type === "price_reach") return `价格达到 ${formatWesternGrouped(warning.price ?? 0, precision)}`;
-  if (warning.type === "price_rise_to") return `价格涨到 ${formatWesternGrouped(warning.price ?? 0, precision)}`;
-  if (warning.type === "price_fall_to") return `价格跌到 ${formatWesternGrouped(warning.price ?? 0, precision)}`;
-  if (warning.type === "price_rise_pct_over") return `价格${warning.window ?? "5m"}涨幅 ${warning.percent ?? 0}%`;
-  return `价格${warning.window ?? "5m"}跌幅 ${warning.percent ?? 0}%`;
+function getAlertLineLabelText(alertItem: AlertItem, precision = 2): string {
+  if (alertItem.type === "price_reach") return `价格达到 ${formatWesternGrouped(alertItem.price ?? 0, precision)}`;
+  if (alertItem.type === "price_rise_to") return `价格涨到 ${formatWesternGrouped(alertItem.price ?? 0, precision)}`;
+  if (alertItem.type === "price_fall_to") return `价格跌到 ${formatWesternGrouped(alertItem.price ?? 0, precision)}`;
+  if (alertItem.type === "price_rise_pct_over") return `价格${alertItem.window ?? "5m"}涨幅 ${alertItem.percent ?? 0}%`;
+  return `价格${alertItem.window ?? "5m"}跌幅 ${alertItem.percent ?? 0}%`;
 }
 
-const priceWarningLine = (): OverlayTemplate => ({
-  name: "priceWarningLine",
+const priceAlertLine = (): OverlayTemplate => ({
+  name: "priceAlertLine",
   mode: "normal",
   totalStep: 1,
   lock: true,
@@ -75,10 +75,10 @@ const priceWarningLine = (): OverlayTemplate => ({
   needDefaultYAxisFigure: false,
   createPointFigures: ({ chart, coordinates, bounding, overlay }) => {
     const price = overlay.points[0]?.value;
-    const ext = overlay.extendData as WarningExtendData | undefined;
-    const warning = ext?.warning;
+    const ext = overlay.extendData as AlertExtendData | undefined;
+    const alertItem = ext?.alert;
     const last = chart.getDataList().at(-1);
-    if (price === undefined || !Number.isFinite(price) || !warning || !last) {
+    if (price === undefined || !Number.isFinite(price) || !alertItem || !last) {
       return [];
     }
     if (!isPriceInVisibleCandleRange(chart, price)) {
@@ -87,7 +87,7 @@ const priceWarningLine = (): OverlayTemplate => ({
     const y =
       (chart.convertToPixel({ timestamp: last.timestamp, value: price }) as Partial<Coordinate>).y ?? coordinates[0].y;
     const precision = chart.getSymbol()?.pricePrecision ?? 2;
-    const text = getWarningText(warning, precision);
+    const text = getAlertLineLabelText(alertItem, precision);
     const textW = utils.calcTextWidth(text);
     /** 等腰三角：底边在左，顶点贴齐主图画布右缘 */
     const triangleTipX = bounding.width;
@@ -95,7 +95,7 @@ const priceWarningLine = (): OverlayTemplate => ({
     const lineEndX = triangleBaseX - 2;
     const figures: any[] = [
       {
-        key: "warning-line",
+        key: "alert-line",
         type: "line",
         attrs: {
           coordinates: [
@@ -103,11 +103,11 @@ const priceWarningLine = (): OverlayTemplate => ({
             { x: lineEndX, y },
           ],
         },
-        styles: warningLineStyle(),
+        styles: alertLineStyle(),
         ignoreEvent: true,
       },
       {
-        key: "warning-triangle",
+        key: "alert-triangle",
         type: "polygon",
         attrs: {
           coordinates: [
@@ -116,7 +116,7 @@ const priceWarningLine = (): OverlayTemplate => ({
             { x: triangleBaseX, y: y + 6 },
           ],
         },
-        styles: { style: "fill", color: WARNING_COLOR },
+        styles: { style: "fill", color: ALERT_LINE_COLOR },
         ignoreEvent: false,
       },
     ];
@@ -125,7 +125,7 @@ const priceWarningLine = (): OverlayTemplate => ({
       const boxX = Math.max(8, triangleBaseX - boxW - 10);
       figures.push(
         {
-          key: "warning-info-text",
+          key: "alert-info-text",
           type: "text",
           attrs: {
             x: boxX + 8,
@@ -154,7 +154,7 @@ const priceWarningLine = (): OverlayTemplate => ({
           ignoreEvent: false,
         },
         {
-          key: "warning-info-close",
+          key: "alert-info-close",
           type: "text",
           attrs: {
             x: boxX + boxW - 0,
@@ -191,34 +191,34 @@ const priceWarningLine = (): OverlayTemplate => ({
   onPressedMoveEnd: () => false,
   onMouseEnter: (event: OverlayEvent<unknown>) => {
     const key = event.figure?.key;
-    if (!warningHoverFigureKey(key)) {
+    if (!alertHoverFigureKey(key)) {
       return false;
     }
-    clearWarningHoverHideTimer(event.overlay.id);
-    const ext = (event.overlay.extendData ?? {}) as WarningExtendData;
+    clearAlertHoverHideTimer(event.overlay.id);
+    const ext = (event.overlay.extendData ?? {}) as AlertExtendData;
     event.overlay.extendData = { ...ext, showInfo: true };
     return false;
   },
   onMouseLeave: (event: OverlayEvent<unknown>) => {
     const key = event.figure?.key;
-    if (!warningHoverFigureKey(key)) {
+    if (!alertHoverFigureKey(key)) {
       return false;
     }
-    scheduleWarningHoverHide(event.chart, event.overlay.id);
+    scheduleAlertHoverHide(event.chart, event.overlay.id);
     return false;
   },
   onRemoved: (event: OverlayEvent<unknown>) => {
-    clearWarningHoverHideTimer(event.overlay.id);
+    clearAlertHoverHideTimer(event.overlay.id);
     return false;
   },
   onSelected: (event: OverlayEvent<unknown>) => {
     if (event.preventDefault) event.preventDefault();
     event.overlay.mode = "normal";
-    const ext = (event.overlay.extendData ?? {}) as WarningExtendData;
+    const ext = (event.overlay.extendData ?? {}) as AlertExtendData;
     const key = event.figure?.key ?? "";
-    if (key === "warning-info-close") {
-      if (ext.warning) {
-        removeHandler?.(ext.warning);
+    if (key === "alert-info-close") {
+      if (ext.alert) {
+        removeHandler?.(ext.alert);
       }
       return false;
     }
@@ -229,19 +229,19 @@ const priceWarningLine = (): OverlayTemplate => ({
     return false;
   },
   onDoubleClick: (event: OverlayEvent<unknown>) => {
-    if (event.figure?.key !== "warning-info-text") {
+    if (event.figure?.key !== "alert-info-text") {
       return false;
     }
     if (event.preventDefault) event.preventDefault();
-    const ext = (event.overlay.extendData ?? {}) as WarningExtendData;
-    if (!ext.warning) {
+    const ext = (event.overlay.extendData ?? {}) as AlertExtendData;
+    if (!ext.alert) {
       return false;
     }
     window.dispatchEvent(
-      new CustomEvent(WARNING_DETAIL_OPEN_EVENT, { detail: { warning: ext.warning } }),
+      new CustomEvent(ALERT_DETAIL_OPEN_EVENT, { detail: { alert: ext.alert } }),
     );
     return false;
   },
 });
 
-export default priceWarningLine;
+export default priceAlertLine;
