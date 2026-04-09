@@ -274,7 +274,7 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
   }
 
   const handleRemoveAlert = async (alertItem: AlertItem) => {
-    await props.onRemoveAlert?.(alertItem)
+    return (await props.onRemoveAlert?.(alertItem)) ?? true
   }
 
   setPriceAlertOverlayHandlers({

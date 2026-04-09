@@ -5,7 +5,7 @@ import { AlertFrequency, AlertItemInput, AlertType, AlertWindow } from '../../ty
 
 export interface AlertAddModalProps {
   onClose: () => void
-  onSubmit: (payload: AlertItemInput) => void | Promise<void>
+  onSubmit: (payload: AlertItemInput) => boolean | Promise<boolean>
 }
 
 type FormState = {
@@ -81,8 +81,10 @@ const AlertAddModal: Component<AlertAddModalProps> = (props) => {
     setError('')
     setSubmitting(true)
     try {
-      await props.onSubmit(payload)
-      props.onClose()
+      const canClose = await props.onSubmit(payload)
+      if (canClose) {
+        props.onClose()
+      }
     } finally {
       setSubmitting(false)
     }

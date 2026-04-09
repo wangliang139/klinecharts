@@ -191,8 +191,8 @@ export interface ChartProOptions {
   dataTimestamp?: number;
   overrides?: DeepPartial<PaneProperties>;
   alerts?: AlertItem[];
-  onAddAlert?: (alert: AlertItemInput) => void | Promise<void>;
-  onRemoveAlert?: (alert: AlertItem) => void | Promise<void>;
+  onAddAlert?: (alert: AlertItemInput) => boolean | Promise<boolean>;
+  onRemoveAlert?: (alert: AlertItem) => boolean | Promise<boolean>;
 }
 
 export interface ChartPro {

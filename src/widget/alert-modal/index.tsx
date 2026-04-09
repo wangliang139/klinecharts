@@ -8,8 +8,8 @@ import { AlertDetailFields } from './alert-detail-fields'
 export interface AlertModalProps {
   alerts: AlertItem[]
   onClose: () => void
-  onAddAlert?: (alert: AlertItemInput) => void | Promise<void>
-  onRemoveAlert?: (alert: AlertItem) => void | Promise<void>
+  onAddAlert?: (alert: AlertItemInput) => boolean | Promise<boolean>
+  onRemoveAlert?: (alert: AlertItem) => boolean | Promise<boolean>
 }
 
 function summaryLine(alertItem: AlertItem): string {
@@ -45,7 +45,7 @@ const AlertModal: Component<AlertModalProps> = (props) => {
                 <button
                   type="button"
                   class="alert-delete"
-                  onClick={() => { props.onRemoveAlert?.(alertItem) }}
+                  onClick={async () => { await props.onRemoveAlert?.(alertItem) }}
                   onDblClick={(e) => { e.stopPropagation() }}
                 >
                   删除
@@ -71,7 +71,7 @@ const AlertModal: Component<AlertModalProps> = (props) => {
         <AlertAddModal
           onClose={() => { setAddVisible(false) }}
           onSubmit={async (payload) => {
-            await props.onAddAlert?.(payload)
+            return (await props.onAddAlert?.(payload)) ?? true
           }}
         />
       </Show>

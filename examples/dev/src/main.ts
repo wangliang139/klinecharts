@@ -141,15 +141,18 @@ chart = new KLineChartPro({
   drawingBarVisible: false,
   alerts: alertState,
   onAddAlert: async (payload) => {
+    return false;
     const alertItem = normalizeAlert(payload);
     alertState = [...alertState, alertItem];
     chart.setAlerts(alertState);
     console.log("[dev] onAddAlert", alertItem);
+    return true;
   },
   onRemoveAlert: async (alertItem) => {
     alertState = alertState.filter((item) => item.id !== alertItem.id);
     chart.setAlerts(alertState);
     console.log("[dev] onRemoveAlert", alertItem);
+    return true;
   },
 });
 
