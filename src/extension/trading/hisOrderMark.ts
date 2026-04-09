@@ -7,14 +7,6 @@ import { Coordinate, OverlayEvent, OverlayTemplate, TextStyle } from "klinechart
 import type { HisOrder } from "../../types/types";
 import { HIS_ORDER_HOVER_EVENT } from "./constants";
 
-function getEventContainer(event: OverlayEvent<unknown>): HTMLElement | null {
-  const source = event as OverlayEvent<unknown> & {
-    chart?: { getDom?: (paneId: string, position?: string) => HTMLElement | null };
-  };
-  const pane = source.chart?.getDom?.("candle_pane", "main") as HTMLElement | null | undefined;
-  return pane?.closest(".klinecharts-pro") as HTMLElement | null;
-}
-
 const BUY_COLOR = "#2ebd85";
 const SELL_COLOR = "#f6465d";
 const MARK_RADIUS = 6;
@@ -24,6 +16,12 @@ const STACK_GAP = 14;
 const LATEST_BAR_MIN_PIXEL_SPAN = 18;
 
 const overlayAnchorMap = new Map<string, { x: number; y: number }>();
+const overlayContainerMap = new Map<string, HTMLElement | null>();
+
+function getEventContainer(event: OverlayEvent<unknown>): HTMLElement | null {
+  if (!event.overlay.id) return null;
+  return overlayContainerMap.get(event.overlay.id) ?? null;
+}
 type HisOrderOverlayExtend = HisOrder & {
   stackIndex?: number;
   barHigh?: number;
@@ -107,6 +105,7 @@ const historicalOrderMark = (): OverlayTemplate => ({
       if (paneDom) {
         const rect = paneDom.getBoundingClientRect();
         overlayAnchorMap.set(overlay.id, { x: rect.left + x, y: rect.top + y });
+        overlayContainerMap.set(overlay.id, paneDom.closest(".klinecharts-pro") as HTMLElement | null);
       }
     }
 
@@ -156,6 +155,7 @@ const historicalOrderMark = (): OverlayTemplate => ({
   onMouseLeave: (event: OverlayEvent<unknown>) => {
     if (event.overlay.id) {
       overlayAnchorMap.delete(event.overlay.id);
+      overlayContainerMap.delete(event.overlay.id);
     }
     window.dispatchEvent(
       new CustomEvent(HIS_ORDER_HOVER_EVENT, {
@@ -173,6 +173,7 @@ const historicalOrderMark = (): OverlayTemplate => ({
   onRemoved: (event: OverlayEvent<unknown>) => {
     if (event.overlay.id) {
       overlayAnchorMap.delete(event.overlay.id);
+      overlayContainerMap.delete(event.overlay.id);
     }
     return false;
   },

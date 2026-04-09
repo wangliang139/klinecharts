@@ -320,11 +320,7 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
   const onHisOrderHover = (evt: Event) => {
     const detail = (evt as CustomEvent<{ sourceContainer?: HTMLElement | null }>).detail
     const sourceContainer = detail?.sourceContainer ?? null
-    const currentContainer = (
-      props.rootElementId
-        ? document.getElementById(props.rootElementId)?.closest('.klinecharts-pro')
-        : null
-    ) as HTMLElement | null
+    const currentContainer = (widgetRef as HTMLElement | undefined)?.closest('.klinecharts-pro') as HTMLElement | null
     if (sourceContainer && currentContainer && sourceContainer !== currentContainer) {
       return
     }
