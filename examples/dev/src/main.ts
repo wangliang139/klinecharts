@@ -137,7 +137,7 @@ chart = new KLineChartPro({
   ],
   datafeed,
   theme: "light",
-  locale: "zh-CN",
+  locale: "en-US",
   drawingBarVisible: false,
   alerts: alertState,
   onAddAlert: async (payload) => {
@@ -180,15 +180,6 @@ setTimeout(() => {
   ]);
   chart.setAlerts(alertState);
 }, 1000);
-
-setTimeout(() => {
-  const symbol = chart.getSymbol();
-  chart.setSymbol({
-    ...symbol,
-    pricePrecision: 2,
-    volumePrecision: 2,
-  });
-}, 2000);
 
 window.addEventListener("resize", () => {
   chart.resize();

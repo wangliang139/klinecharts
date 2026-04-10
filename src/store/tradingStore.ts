@@ -11,6 +11,7 @@ export const DEFAULT_TRADING_DISPLAY: TradingConfig = {
   showLiquidation: false,
   showOpenOrders: false,
   showHisOrders: false,
+  showPriceAlerts: true,
 };
 
 const TRADING_OVERLAY_GROUP = "trading-display";
@@ -125,6 +126,8 @@ export function normalizeTradingConfig(input: unknown): TradingConfig | null {
     showLiquidation: cfg.showLiquidation,
     showOpenOrders: typeof cfg.showOpenOrders === "boolean" ? cfg.showOpenOrders : DEFAULT_TRADING_DISPLAY.showOpenOrders,
     showHisOrders: typeof cfg.showHisOrders === "boolean" ? cfg.showHisOrders : DEFAULT_TRADING_DISPLAY.showHisOrders,
+    showPriceAlerts:
+      typeof cfg.showPriceAlerts === "boolean" ? cfg.showPriceAlerts : DEFAULT_TRADING_DISPLAY.showPriceAlerts,
   };
 }
 
@@ -295,6 +298,7 @@ function buildDesiredOverlays(
   const showLiq = scope.tradingConfig.showLiquidation;
   const showOpenOrders = scope.tradingConfig.showOpenOrders;
   const showHisOrders = scope.tradingConfig.showHisOrders;
+  const showPriceAlerts = scope.tradingConfig.showPriceAlerts;
   const validPositions = scope.positionsState.filter((p) => p.size !== 0 && Number.isFinite(p.avgPrice));
 
   if (showPos) {
@@ -397,7 +401,7 @@ function buildDesiredOverlays(
     });
   }
 
-  if (chartSymbol) {
+  if (chartSymbol && showPriceAlerts) {
     const alertItems = scope.alertsState;
     for (let i = 0; i < alertItems.length; i++) {
       const alertItem = alertItems[i]!;

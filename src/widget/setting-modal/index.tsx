@@ -96,7 +96,7 @@ const SettingModal: Component<SettingModalProps> = props => {
   }
 
   const settingsButton = [
-    { text: i18n('setting_sidebar_trading', props.locale), key: 'trading' },
+    { text: i18n('setting_sidebar_chart', props.locale), key: 'trading' },
     { text: 'Candle', key: 'candle' },
     { text: 'Indicator', key: 'indicator' },
     { text: 'Grid', key: 'grid' },
@@ -233,6 +233,17 @@ const SettingModal: Component<SettingModalProps> = props => {
                   open={tradingUi().showHisOrders}
                   onChange={() => {
                     const next = { ...tradingUi(), showHisOrders: !tradingUi().showHisOrders }
+                    setTradingUi(next)
+                    setTradingConfigState(next)
+                  }}
+                />
+              </div>
+              <div class="component">
+                <span>{i18n('trading_display_price_alerts', props.locale)}</span>
+                <Switch
+                  open={tradingUi().showPriceAlerts}
+                  onChange={() => {
+                    const next = { ...tradingUi(), showPriceAlerts: !tradingUi().showPriceAlerts }
                     setTradingUi(next)
                     setTradingConfigState(next)
                   }}

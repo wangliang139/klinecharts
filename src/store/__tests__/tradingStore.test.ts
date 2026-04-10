@@ -18,6 +18,7 @@ describe("tradingStore helpers", () => {
       showLiquidation: false,
       showOpenOrders: false,
       showHisOrders: false,
+      showPriceAlerts: true,
     });
   });
 
@@ -28,10 +29,12 @@ describe("tradingStore helpers", () => {
         showLiquidation: true,
         showOpenOrders: true,
         showHisOrders: false,
+        showPriceAlerts: false,
       },
     });
     expect(cfg.showLiquidation).toBe(true);
     expect(cfg.showOpenOrders).toBe(true);
+    expect(cfg.showPriceAlerts).toBe(false);
   });
 
   it("maps timestamp to closest left bar", () => {

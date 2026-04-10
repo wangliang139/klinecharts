@@ -96,6 +96,7 @@ export interface TradingConfig {
   showLiquidation: boolean;
   showOpenOrders: boolean;
   showHisOrders: boolean;
+  showPriceAlerts: boolean;
 }
 
 export interface PendingOrder {

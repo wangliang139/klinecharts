@@ -121,10 +121,11 @@
   "log": "Log",
   "reverse_coordinate": "Reverse Coordinate",
   "grid_show": "Show Grids",
-  "setting_sidebar_trading": "Trading",
+  "setting_sidebar_chart": "Chart",
   "trading_display_positions": "Open positions",
   "trading_display_liquidation": "Liquidation price",
   "trading_display_open_orders": "Open orders",
   "trading_display_his_orders": "Historical orders",
-  "restore_default": "Restore Defaults"
+  "trading_display_price_alerts": "Price alerts",
+  "restore_default": "Restore"
 }
