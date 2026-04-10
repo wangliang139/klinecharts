@@ -67,8 +67,9 @@ import {
 import { useChartState } from './store/chartStateStore'
 import {
   ChartProComponentProps, instanceApi, loadingVisible,
-  period, setInstanceApi, setPeriod, setRooltelId, setSelectedOverlay, setStyles, setSymbol, styles, symbol
+  period, setInstanceApi, setPeriod as setCurrentPeriod, setRooltelId, setSelectedOverlay, setStyles, setSymbol, styles, symbol
 } from './store/chartStore'
+import { findMatchedPeriod, persistPeriod, resolveInitialPeriod } from './store/periodStore'
 import { createHisOrderHoverController, createResyncScheduler } from './store/tradingEffects'
 import {
   bindTradingStore,
@@ -232,6 +233,14 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
 
   const [indicatorSettingModalParams, setIndicatorSettingModalParams] = createSignal<IndicatorSettingParams>(DEFAULT_INDICATOR_SETTING_PARAMS)
 
+  const applyPeriod = (nextPeriod: Period) => {
+    const actualPeriod = findMatchedPeriod(props.periods, nextPeriod) ?? nextPeriod
+    setCurrentPeriod(actualPeriod)
+    persistPeriod(actualPeriod)
+  }
+
+  const initialPeriod = resolveInitialPeriod(props.periods, props.period)
+
   const handleRemoveAlert = async (alertItem: AlertItem) => {
     return (await props.onRemoveAlert?.(alertItem)) ?? true
   }
@@ -242,7 +251,8 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
     },
   })
 
-  setPeriod(props.period)
+  setCurrentPeriod(initialPeriod)
+  persistPeriod(initialPeriod)
   setSymbol(props.symbol)
 
   const hoverController = createHisOrderHoverController(
@@ -360,7 +370,7 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
     getTimezone: () => timezone().key,
     setSymbol,
     getSymbol: () => symbol()!,
-    setPeriod,
+    setPeriod: applyPeriod,
     getPeriod: () => period()!,
     getInstanceApi: () => instanceApi(),
     resize: () => instanceApi()?.resize(),
@@ -791,7 +801,7 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
           } catch (e) { }
         }}
         onSymbolClick={() => { setSymbolSearchModalVisible(!symbolSearchModalVisible()) }}
-        onPeriodChange={setPeriod}
+        onPeriodChange={applyPeriod}
         onIndicatorClick={() => { setIndicatorModalVisible((visible => !visible)) }}
         onTimezoneClick={() => { setTimezoneModalVisible((visible => !visible)) }}
         onAlertClick={() => { setAlertModalVisible(true) }}

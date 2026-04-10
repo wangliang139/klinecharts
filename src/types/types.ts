@@ -161,6 +161,7 @@ export interface ChartObjType {
   figures?: FiguresType[];
   indicators?: IndicatorsType[];
   trading?: TradingConfig;
+  period?: Period;
 }
 
 export interface Datafeed {
