@@ -162,6 +162,7 @@ export interface ChartObjType {
   indicators?: IndicatorsType[];
   trading?: TradingConfig;
   period?: Period;
+  timezone?: string;
 }
 
 export interface Datafeed {

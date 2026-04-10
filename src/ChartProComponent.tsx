@@ -70,6 +70,7 @@ import {
   period, setInstanceApi, setPeriod as setCurrentPeriod, setRooltelId, setSelectedOverlay, setStyles, setSymbol, styles, symbol
 } from './store/chartStore'
 import { findMatchedPeriod, persistPeriod, resolveInitialPeriod } from './store/periodStore'
+import { persistTimezone, resolveInitialTimezone } from './store/timezoneStore'
 import { createHisOrderHoverController, createResyncScheduler } from './store/tradingEffects'
 import {
   bindTradingStore,
@@ -209,7 +210,6 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
   const [subIndicators, setSubIndicators] = createSignal<SubIndicatorMap>({})
 
   const [timezoneModalVisible, setTimezoneModalVisible] = createSignal(false)
-  const [timezone, setTimezone] = createSignal<SelectDataSourceItem>({ key: props.timezone, text: translateTimezone(props.timezone, props.locale) })
 
   const [settingModalVisible, setSettingModalVisible] = createSignal(false)
   const [alertModalVisible, setAlertModalVisible] = createSignal(false)
@@ -240,6 +240,16 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
   }
 
   const initialPeriod = resolveInitialPeriod(props.periods, props.period)
+  const initialTimezone = resolveInitialTimezone(props.timezone)
+  const [timezone, setTimezone] = createSignal<SelectDataSourceItem>({
+    key: initialTimezone,
+    text: translateTimezone(initialTimezone, props.locale)
+  })
+
+  const applyTimezone = (nextTimezone: string) => {
+    setTimezone({ key: nextTimezone, text: translateTimezone(nextTimezone, locale()) })
+    persistTimezone(nextTimezone)
+  }
 
   const handleRemoveAlert = async (alertItem: AlertItem) => {
     return (await props.onRemoveAlert?.(alertItem)) ?? true
@@ -253,6 +263,7 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
 
   setCurrentPeriod(initialPeriod)
   persistPeriod(initialPeriod)
+  persistTimezone(initialTimezone)
   setSymbol(props.symbol)
 
   const hoverController = createHisOrderHoverController(
@@ -366,7 +377,7 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
     getStyles: () => styles() ?? {},
     setLocale,
     getLocale: () => locale(),
-    setTimezone: (timezone: string) => { setTimezone({ key: timezone, text: translateTimezone(props.timezone, locale()) }) },
+    setTimezone: applyTimezone,
     getTimezone: () => timezone().key,
     setSymbol,
     getSymbol: () => symbol()!,
@@ -715,7 +726,7 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
           locale={locale()}
           timezone={timezone()}
           onClose={() => { setTimezoneModalVisible(false) }}
-          onConfirm={setTimezone}
+          onConfirm={(timezone) => { applyTimezone(timezone.key) }}
         />
       </Show>
       <Show when={alertModalVisible()}>
