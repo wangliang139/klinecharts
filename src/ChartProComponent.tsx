@@ -78,7 +78,7 @@ import {
   setPositionsData,
   syncTradingOverlays
 } from './store/tradingStore'
-import { AlertItem, AlertType, HisOrder, PendingOrder, Period, Position, SymbolInfo } from './types/types'
+import { AlertItem, AlertType, HisOrder, PendingOrder, Period, Position, ProChart, SymbolInfo } from './types/types'
 const { createIndicator, pushOverlay, restoreChartState } = useChartState()
 
 interface PrevSymbolPeriod {
@@ -218,6 +218,8 @@ function buildTooltipFeatureStyles(color: string) {
 
 const ChartProComponent: Component<ChartProComponentProps> = props => {
   let widgetRef: HTMLDivElement | undefined = undefined
+  /** 本实例 Chart；勿用全局 instanceApi 同步 overlay，多图表时后者指向最后 mount 的那张 */
+  let chartApiRef: ProChart | null = null
 
   let priceUnitDom: HTMLElement
 
@@ -255,7 +257,7 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
   const safeOverlaySegment = (key: string) => key.replace(/[^a-zA-Z0-9_-]/g, '_')
 
   const syncAlertOverlays = () => {
-    const api = instanceApi()
+    const api = chartApiRef
     const currentSymbol = symbol()
     if (!api || !currentSymbol) return
     const lastTs = api.getDataList().at(-1)?.timestamp ?? Date.now()
@@ -312,8 +314,6 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
       void handleRemoveAlert(alertItem)
     },
   })
-
-
 
   setPeriod(props.period)
   setSymbol(props.symbol)
@@ -398,7 +398,8 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
   const disposeChart = () => {
     if (isDisposed) return
     isDisposed = true
-    instanceApi()?.unsubscribeAction('onCrosshairChange', onCrosshairForHisOrderHover)
+    const disposedChart = chartApiRef
+    disposedChart?.unsubscribeAction('onCrosshairChange', onCrosshairForHisOrderHover)
     lastCrosshairHisOrderPickId = null
     hoverController.clear()
     resyncScheduler.clear()
@@ -415,6 +416,10 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
     if (widgetRef) {
       dispose(widgetRef)
     }
+    if (instanceApi() === disposedChart) {
+      setInstanceApi(null)
+    }
+    chartApiRef = null
   }
 
   const exposedApi = {
@@ -467,7 +472,7 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
     // Fallback for legacy/global emitters.
     window.addEventListener(ALERT_DETAIL_OPEN_EVENT, onAlertDetailOpen)
     window.addEventListener('resize', documentResize)
-    setInstanceApi(Chart.init(widgetRef!, {
+    const chart = Chart.init(widgetRef!, {
       formatter: {
         formatDate: (params: FormatDateParams) => {
           const p = period()!
@@ -502,12 +507,14 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
           return utils.formatDate(params.dateTimeFormat, params.timestamp, 'YYYY-MM-DD HH:mm')
         }
       }
-    }))
+    })
+    chartApiRef = chart
+    setInstanceApi(chart)
 
-    if (instanceApi()) {
+    if (chart) {
       setRooltelId(props.rootElementId)
       // console.info('ChartPro widget initialized')
-      const watermarkContainer = instanceApi()!.getDom('candle_pane', 'main')
+      const watermarkContainer = chart.getDom('candle_pane', 'main')
       if (watermarkContainer) {
         let watermark = document.createElement('div')
         watermark.className = 'klinecharts-pro-watermark'
@@ -520,33 +527,33 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
         watermarkContainer.appendChild(watermark)
       }
 
-      const priceUnitContainer = instanceApi()!.getDom('candle_pane', 'yAxis')
+      const priceUnitContainer = chart.getDom('candle_pane', 'yAxis')
       priceUnitDom = document.createElement('span')
       priceUnitDom.className = 'klinecharts-pro-price-unit'
       priceUnitContainer?.appendChild(priceUnitDom)
 
-      instanceApi()?.setZoomAnchor({ main: 'last_bar', xAxis: 'last_bar' })
-      instanceApi()?.setBarSpace(400)
+      chart.setZoomAnchor({ main: 'last_bar', xAxis: 'last_bar' })
+      chart.setBarSpace(400)
 
-      instanceApi()?.subscribeAction('onCrosshairFeatureClick', (data) => {
+      chart.subscribeAction('onCrosshairFeatureClick', (data) => {
         // console.info('onCrosshairFeatureClick', data)
       })
 
-      instanceApi()?.subscribeAction('onIndicatorTooltipFeatureClick', indicatorHandlers.onIndicatorTooltipFeatureClick)
+      chart.subscribeAction('onIndicatorTooltipFeatureClick', indicatorHandlers.onIndicatorTooltipFeatureClick)
 
-      instanceApi()?.subscribeAction('onCandleTooltipFeatureClick', (data) => {
+      chart.subscribeAction('onCandleTooltipFeatureClick', (data) => {
         // console.info('onCandleTooltipFeatureClick', data)
       })
 
-      instanceApi()?.subscribeAction('onZoom', (data) => {
+      chart.subscribeAction('onZoom', (data) => {
         // console.info('chart zoomed: ', data)
       })
 
-      instanceApi()?.subscribeAction('onCrosshairChange', onCrosshairForHisOrderHover)
+      chart.subscribeAction('onCrosshairChange', onCrosshairForHisOrderHover)
       restoreChartState(props.overrides)
-      bindTradingStore(instanceApi()!)
-      loadTradingConfigFromStorage(instanceApi())
-      syncTradingOverlays(instanceApi())
+      bindTradingStore(chart)
+      loadTradingConfigFromStorage(chart)
+      syncTradingOverlays(chart)
       syncAlertOverlays()
 
       const s = symbol()
@@ -556,12 +563,12 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
       } else {
         priceUnitDom.style.display = 'none'
       }
-      instanceApi()?.setSymbol({ ticker: s!.ticker, pricePrecision: s?.pricePrecision ?? 2, volumePrecision: s?.volumePrecision ?? 0 })
-      instanceApi()?.setPeriod(period()!)
-      instanceApi()?.setDataLoader(props.dataloader)
+      chart.setSymbol({ ticker: s!.ticker, pricePrecision: s?.pricePrecision ?? 2, volumePrecision: s?.volumePrecision ?? 0 })
+      chart.setPeriod(period()!)
+      chart.setDataLoader(props.dataloader)
     }
 
-    const w = instanceApi()
+    const w = chartApiRef
 
     if (w) {
       mainIndicators().forEach(indicator => {

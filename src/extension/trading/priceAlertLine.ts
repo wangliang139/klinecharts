@@ -73,9 +73,11 @@ const alertLineStyle = (): LineStyle => ({
 });
 
 function getAlertLineLabelText(alertItem: AlertItem, precision = 2): string {
-  if (alertItem.type === "price_reach") return `价格达到 ${formatWesternGrouped(alertItem.price ?? 0, precision)}`;
-  if (alertItem.type === "price_rise_to") return `价格涨到 ${formatWesternGrouped(alertItem.price ?? 0, precision)}`;
-  if (alertItem.type === "price_fall_to") return `价格跌到 ${formatWesternGrouped(alertItem.price ?? 0, precision)}`;
+  const p = Number(alertItem.price ?? 0);
+  const pv = Number.isFinite(p) ? p : 0;
+  if (alertItem.type === "price_reach") return `价格达到 ${formatWesternGrouped(pv, precision)}`;
+  if (alertItem.type === "price_rise_to") return `价格涨到 ${formatWesternGrouped(pv, precision)}`;
+  if (alertItem.type === "price_fall_to") return `价格跌到 ${formatWesternGrouped(pv, precision)}`;
   if (alertItem.type === "price_rise_pct_over") return `价格${alertItem.window ?? "5m"}涨幅 ${alertItem.percent ?? 0}%`;
   return `价格${alertItem.window ?? "5m"}跌幅 ${alertItem.percent ?? 0}%`;
 }

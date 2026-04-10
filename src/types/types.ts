@@ -135,7 +135,7 @@ export interface AlertItem {
   id: string;
   type: AlertType;
   frequency: AlertFrequency;
-  price?: number;
+  price?: number | string;
   window?: AlertWindow;
   percent?: number;
   remark?: string;
