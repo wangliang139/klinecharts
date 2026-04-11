@@ -18,7 +18,8 @@ import {
   createSignal,
   onCleanup,
   onMount, Show,
-  startTransition
+  startTransition,
+  untrack
 } from 'solid-js'
 
 import {
@@ -516,7 +517,7 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
       } else {
         priceUnitDom.style.display = 'none'
       }
-      chart.setSymbol({ ticker: s!.ticker, pricePrecision: s?.pricePrecision ?? 2, volumePrecision: s?.volumePrecision ?? 0 })
+      chart.setSymbol({ ...s, ticker: s!.ticker, pricePrecision: s?.pricePrecision ?? 2, volumePrecision: s?.volumePrecision ?? 0 })
       chart.setPeriod(period()!)
       chart.setDataLoader(props.dataloader)
     }
@@ -564,23 +565,26 @@ const ChartProComponent: Component<ChartProComponentProps> = props => {
 
     if (periodChanged) {
       api?.setPeriod(p)
-      scheduleTradingOverlayResync()
     }
 
-    const onlyPeriodChanged = periodChanged && !symbolKeyChanged
-    if (!onlyPeriodChanged) {
+    if (symbolKeyChanged) {
       api?.setSymbol({
         ...s,
         pricePrecision: s.pricePrecision ?? 2,
         volumePrecision: s.volumePrecision ?? 0,
       } as PickPartial<KLineSymbolInfo, 'pricePrecision' | 'volumePrecision'>)
-      scheduleTradingOverlayResync()
-      // klinecharts 在 ticker 不变时更新精度，可能不会立即重绘 y 轴刻度。
-      // 这里补一次轻量刷新，确保刻度文本即时按新精度生效。
-      if (precisionChangedOnly) {
-        api?.resize()
-      }
     }
+
+    if (periodChanged || symbolKeyChanged) {
+      scheduleTradingOverlayResync()
+    }
+
+    // klinecharts 在 ticker 不变时更新精度，可能不会立即重绘 y 轴刻度。
+    // 这里补一次轻量刷新，确保刻度文本即时按新精度生效。
+    if (precisionChangedOnly) {
+      api?.resize()
+    }
+
     syncTradingOverlays(instanceApi())
 
     return { symbol: s, period: p }

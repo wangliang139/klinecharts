@@ -1,4 +1,4 @@
-import type { AlertItem, AlertItemInput, HisOrder } from "@wangliang139/klinecharts-pro";
+import type { AlertItem, AlertItemInput, HisOrder, SymbolInfo } from "@wangliang139/klinecharts-pro";
 import { KLineChartPro } from "@wangliang139/klinecharts-pro";
 
 import type { Order } from "./api";
@@ -71,7 +71,60 @@ if (!root) {
   throw new Error("#app 容器不存在");
 }
 
-root.innerHTML = '<div id="chart" class="chart-wrap"></div>';
+const SYMBOL_PRESETS: SymbolInfo[] = [
+  {
+    ticker: "BTC/USDT:FUTURE",
+    name: "BTC/USDT:FUTURE",
+    shortName: "BTC",
+    market: "binance",
+    exchange: "binance",
+    pricePrecision: 2,
+    volumePrecision: 2,
+    priceCurrency: "USDT",
+    type: "crypto",
+  },
+  {
+    ticker: "ETH/USDT:FUTURE",
+    name: "ETH/USDT:FUTURE",
+    shortName: "ETH",
+    market: "binance",
+    exchange: "binance",
+    pricePrecision: 2,
+    volumePrecision: 2,
+    priceCurrency: "USDT",
+    type: "crypto",
+  },
+  {
+    ticker: "SOL/USDT:FUTURE",
+    name: "SOL/USDT:FUTURE",
+    shortName: "SOL",
+    market: "binance",
+    exchange: "binance",
+    pricePrecision: 3,
+    volumePrecision: 1,
+    priceCurrency: "USDT",
+    type: "crypto",
+  },
+];
+
+root.innerHTML = `
+  <div class="dev-root">
+    <div class="dev-symbol-bar">
+      <span class="dev-symbol-bar__label">交易对（模拟外部切换）</span>
+      <select id="dev-symbol-select" class="dev-symbol-bar__select" aria-label="选择交易对"></select>
+    </div>
+    <div id="chart" class="chart-wrap"></div>
+  </div>
+`;
+
+const symbolSelect = document.getElementById("dev-symbol-select") as HTMLSelectElement | null;
+if (symbolSelect) {
+  symbolSelect.innerHTML = SYMBOL_PRESETS.map(
+    (s) => `<option value="${s.ticker}">${s.ticker}</option>`,
+  ).join("");
+  symbolSelect.value = SYMBOL_PRESETS[0]!.ticker;
+}
+
 const chartContainer = document.getElementById("chart");
 if (!chartContainer) {
   throw new Error("#chart 容器不存在");
@@ -162,17 +215,7 @@ const normalizeAlert = (input: AlertItemInput): AlertItem => {
 
 chart = new KLineChartPro({
   container: "chart",
-  symbol: {
-    ticker: "BTC/USDT:FUTURE",
-    name: "BTC/USDT:FUTURE",
-    shortName: "BTC/USDT:FUTURE",
-    market: "binance",
-    exchange: "binance",
-    pricePrecision: 2,
-    volumePrecision: 2,
-    priceCurrency: "USDT",
-    type: "crypto",
-  },
+  symbol: SYMBOL_PRESETS[0]!,
   period: { span: 1, type: "minute", text: "1m" },
   periods: [
     { span: 1, type: "minute", text: "1m" },
@@ -200,6 +243,13 @@ chart = new KLineChartPro({
     console.log("[dev] onRemoveAlert", alertItem);
     return true;
   },
+});
+
+symbolSelect?.addEventListener("change", () => {
+  const next = SYMBOL_PRESETS.find((s) => s.ticker === symbolSelect.value);
+  if (!next) return;
+  chart.setSymbol(next);
+  console.log("[dev] 模拟外部切换 symbol", next.ticker);
 });
 
 chart.setStyles({

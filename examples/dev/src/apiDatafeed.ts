@@ -346,6 +346,7 @@ export function createApiDatafeed(apolloClient: ApolloClient, options: ApiDatafe
       from: number,
       to: number,
     ): Promise<KLineData[]> {
+      debugger
       console.log('[ApiDatafeed] getHistoryKLineData', symbol, period, from, to)
       if (from >= to) return []
       const exchange = symbol.exchange ?? symbol.market
